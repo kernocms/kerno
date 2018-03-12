@@ -1,19 +1,20 @@
 <?php
 
-//
-// Copyright (C) 2006-2016 Next Generation CMS (http://ngcms.ru)
-// Name: index.php
-// Description: core index file
-// Author: NGCMS project team
-//
-
+/*
+ * Copyright (C) 2006-2018 Kerno
+ *
+ * Name: index.php
+ * Description: core index file
+ * 
+*/
+ 
 // Override charset
 @header('content-type: text/html; charset=utf-8');
 
 // Check for minimum supported PHP version
-if (version_compare(PHP_VERSION, '5.3.0') < 0) {
+if (version_compare(PHP_VERSION, '7.1.0') < 0) {
 	@header('content-type: text/html; charset=utf-8');
-	print "<html><head><title>NGCMS required PHP version 5.3+ / Необходима версия PHP 5.3 или выше</title></head><body><div style='font: 24px verdana; background-color: #EEEEEE; border: #ABCDEF 1px solid; margin: 1px; padding: 3px;'><span style='color: red;'>FATAL ERROR / Фатальная ошибка</span><br/><br/><span style=\"font: 16px arial;\"> NGCMS requires PHP version <b>5.3+</b><br/>Please ask your hosting provider to upgrade your account</span><br/><hr/><span style=\"font: 16px arial;\"> Для работы NGCMS требуется PHP версии <b>5.3</b> или выше.<br/>Обратитесь к вашему хостинг провайдеру для обновления версии</span></div></body></html>";
+	print "<html><head><title>NGCMS required PHP version 7.1+ / Необходима версия PHP 7.1 или выше</title></head><body><div style='font: 24px verdana; background-color: #EEEEEE; border: #ABCDEF 1px solid; margin: 1px; padding: 3px;'><span style='color: red;'>FATAL ERROR / Фатальная ошибка</span><br/><br/><span style=\"font: 16px arial;\"> NGCMS requires PHP version <b>7.1+</b><br/>Please ask your hosting provider to upgrade your account</span><br/><hr/><span style=\"font: 16px arial;\"> Для работы NGCMS требуется PHP версии <b>7.1</b> или выше.<br/>Обратитесь к вашему хостинг провайдеру для обновления версии</span></div></body></html>";
 	exit;
 }
 

@@ -1,11 +1,13 @@
 <?php
 
-//
-// Copyright (C) 2006-2016 Next Generation CMS (http://ngcms.ru)
-// Name: install.php
-// Description: System installer
-// Author: Vitaly Ponomarev
-//
+/*
+ * Copyright (C) 2006-2018 Kerno
+ *
+ * Name: install.php
+ * Description: System installer
+ * Author: Vitaly Ponomarev
+ *
+*/
 
 @header('content-type: text/html; charset=utf-8');
 
@@ -391,7 +393,7 @@ function doConfig_perm() {
 	$tvars['vars']['chmod'] = $chmod;
 
 	// PHP Version
-	if (version_compare(phpversion(), '5.3') < 0) {
+	if (version_compare(phpversion(), '7.1') < 0) {
 		$tvars['vars']['php_version'] = '<font color="red">' . phpversion() . '</font>';
 		$error = 1;
 	} else {

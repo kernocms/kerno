@@ -8,5 +8,3 @@
 * **PHP 7.1**
 * **MySQL 5.5+**
 * **Apache** (со включенным mod_rewrite) или **Nginx**
-
-
