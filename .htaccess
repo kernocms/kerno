@@ -1,9 +1,8 @@
 #
 #
-# Copyright (C) 2006-2014 Next Generation CMS (http://ngcms.ru)
+# Copyright (C) 2006-2018 Kerno
 # Name: .htaccess
 # Description: mod_rewrite htaccess file
-# Author: NGCMS project team
 #
 
 DirectoryIndex index.php
