@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright (C) 2006-2018 Kerno
+ * Copyright (C) 2006-2018 Kerno CMS
  *
  * Name: install.php
  * Description: System installer
@@ -267,9 +267,9 @@ function doConfig() {
 function doConfig_db($check) {
 
 	global $tvars, $tpl, $templateDir, $SQL_VERSION, $lang;
-
+	
 	$myparams = array('action', 'stage', 'reg_dbtype', 'reg_dbhost', 'reg_dbname', 'reg_dbuser', 'reg_dbpass', 'reg_dbprefix', 'reg_autocreate', 'reg_dbadminuser', 'reg_dbadminpass');
-	$DEFAULT = array('reg_dbhost' => 'localhost', 'reg_dbprefix' => 'ng');
+	$DEFAULT = array('reg_dbhost' => 'localhost', 'reg_dbprefix' => 'kerno');
 	
 	// Show form
 	$hinput = array();
@@ -329,6 +329,12 @@ function doConfig_db($check) {
 			$error = 1;
 		}
 		
+		$isAvailableCharset = $mysql->query("SHOW CHARACTER SET LIKE 'utf8mb4';");
+		if ( !$mysql->num_rows($isAvailableCharset) ) {
+			$tvars['vars']['error_message'] = '<div class="errorDiv">Ваш MySQL-сервер не поддерживает кодировку <b>utf8mb4</b>! <br/> Свяжитесь с администратором сервера. </div>';
+			$error = 1;
+		}
+		
 		if(isset($mysql) != null){
 			$mysql->close($link);
 		}
@@ -378,11 +384,11 @@ function doConfig_perm() {
 
 	$chmod = '';
 	// Check file permissions
-	$permList = array(
+	$permList = [
 		'.htaccess', 'uploads/', 'uploads/avatars/', 'uploads/files/',
 		'uploads/images/', 'uploads/photos/', 'uploads/dsn/', $adminDirName . '/backups/',
 		$adminDirName . '/cache/', $adminDirName . '/conf/'
-	);
+	];
 	foreach ($permList as $dir) {
 		$perms = (($x = @fileperms($installDir . '/' . $dir)) === false) ? 'n/a' : (decoct($x) % 1000);
 		$chmod .= '<tr><td>./' . $dir . '</td><td>' . $perms . '</td><td>' . (is_writable($installDir . '/' . $dir) ? $lang['perm.access.on'] : '<font color="red"><b>' . $lang['perm.access.off'] . '</b></font>') . '</td></tr>';
@@ -438,23 +444,11 @@ function doConfig_perm() {
 	}
 
 	// GD support
-	if (function_exists('imagecreatetruecolor')) {
+	if (extension_loaded('gd')) {
 		$tvars['vars']['gdlib'] = $lang['perm.yes'];
 	} else {
 		$tvars['vars']['gdlib'] = '<font color="red">' . $lang['perm.no'] . '</font>';
 		$error = 1;
-	}
-
-	//
-	// PHP features configuraton
-	//
-
-	// * flags that should be turned off
-	foreach (array('register_globals', 'magic_quotes_gpc', 'magic_quotes_runtime', 'magic_quotes_sybase') as $flag) {
-		$tvars['vars']['flag:' . $flag] = ini_get($flag) ? '<font color="red">' . $lang['perm.php.on'] . '</font>' : $lang['perm.php.off'];
-		if (ini_get($flag)) {
-			$warning++;
-		}
 	}
 
 	if ($error) {
@@ -488,10 +482,12 @@ function doConfig_plugins() {
 	printHeader();
 
 	// Now we should scan plugins for preinstall configuration
-	$pluglist = array();
+	$pluglist = [];
 
 	$pluginsDir = root . 'plugins';
-	if ($dRec = opendir($pluginsDir)) {
+	
+	if(file_exists($pluginsDir)){
+		if ($dRec = opendir($pluginsDir)) {
 		while (($dName = readdir($dRec)) !== false) {
 			if (($dName == '.') || ($dName == '..'))
 				continue;
@@ -509,11 +505,14 @@ function doConfig_plugins() {
 				fclose($vf);
 				if (isset($pluginRec['id']) && isset($pluginRec['title']))
 					array_push($pluglist, $pluginRec);
-			}
-		}
-		closedir($dRec);
+			    }
+		    }
+		    closedir($dRec);
+	  }
+	} else {
+		echo '<span style="color:red;">Отсутствует папка для плагинов</span> - engine/plugins <br/><br/>';
 	}
-
+	
 	// Prepare array for input list
 	$hinput = array();
 	// Collect data for all plugins
@@ -733,7 +732,7 @@ function doInstall() {
 				} else {
 					array_push($LOG, 'БД "' . $_POST['reg_dbname'] . '" уже существует ... OK');
 				}
-
+                
 				// 2. Предоставление доступа к БД
 				if (!$mysql->query("grant all privileges on " . $_POST['reg_dbname'] . ".* to '" . $_POST['reg_dbuser'] . "'@'" . $_POST['reg_dbhost'] . "' identified by '" . $_POST['reg_dbpass'] . "'")) {
 					array_push($ERROR, 'Невозможно обеспечить доступ пользователя "' . $_POST['reg_dbuser'] . '" к БД "' . $_POST['reg_dbname'] . '" используя административные права.');
@@ -786,6 +785,7 @@ function doInstall() {
 		}
 		
 		// Check if different character set are supported [ version >= 4.1.1 ]
+		/*
 		$charsetEngine = 0;
 
 		if (($msq = $mysql->query("show variables like 'character_set_client'")) && ($mysql->num_rows($msq))) {
@@ -794,6 +794,7 @@ function doInstall() {
 		$charset = $charsetEngine ? ' default charset=utf8' : '';
 
 		array_push($LOG, 'Ваша версия сервера БД mySQL ' . ((!$charsetEngine) ? 'не' : '') . 'поддерживает множественные кодировки.');
+		*/
 
 		// Создаём таблицы в mySQL
 		// 1. Проверяем наличие пересекающихся таблиц
@@ -820,9 +821,6 @@ function doInstall() {
 			if (!trim($dbCreateString)) {
 				continue;
 			}
-
-			// Добавляем кодировку (если поддерживается)
-			$dbCreateString .= $charset;
 
 			// Получаем имя таблицы
 			if (preg_match('/CREATE TABLE `(.+?)`/', $dbCreateString, $match)) {
@@ -861,6 +859,10 @@ function doInstall() {
 			if (preg_match('/CREATE TABLE `(.+?)`/', $dbCreateString, $match)) {
 				$tname = $match[1];
 				$err = 0;
+				
+				// Добавляем кодировку (если поддерживается)
+			    $dbCreateString .= " CHARSET='utf8mb4' COLLATE='utf8mb4_unicode_ci'";
+			
 				$mysql->query($dbCreateString);
 
 				if ($mysql->db_errno()) {
@@ -887,14 +889,20 @@ function doInstall() {
 		array_push($LOG, '');
 		
 		// 1.5 Создание пользователя-администратора
-		$query = "insert into `" . $_POST['reg_dbprefix'] . "_users` (`name`, `pass`, `mail`, `status`, `reg`) VALUES ('" . $mysql->db_quote($_POST['admin_login']) . "', '" . $mysql->db_quote(md5(md5($_POST['admin_password']))) . "', '" . $mysql->db_quote($_POST['admin_email']) . "', '1', unix_timestamp(now()))";
+        $dateReg = date("Y-m-d H:i:s");
+        $userPass = md5(md5($_POST['admin_password']));
+		$query = "INSERT INTO `" . $_POST['reg_dbprefix'] . "_users` (`name`, `pass`, `mail`, `status`, `reg`) VALUES ('
+" . $mysql->db_quote(trim($_POST['admin_login'])) . "', '" . $mysql->db_quote($userPass) . "', '" . $mysql->db_quote(trim($_POST['admin_email'])) . "', '1', '".$dateReg."')";
 		if (!@$mysql->query($query)) {
 			array_push($LOG, 'Активация пользователя-администратора ... <font color="red">FAIL</font>');
 		} else {
 			array_push($LOG, 'Активация пользователя-администратора ... OK');
 		}
+
 		// 1.6 Сохраняем конфигурационную переменную database.engine.version
-		@$mysql->query("insert into `" . $_POST['reg_dbprefix'] . "_config` (name, value) values ('database.engine.version', '0.9.2 Release+SVN')");
+        @include_once 'includes/inc/consts.inc.php';
+
+		@$mysql->query("INSERT INTO `" . $_POST['reg_dbprefix'] . "_config` (name, value) VALUES ('database.engine.version', '".engineVersion."')");
 
 		// Вычищаем лишний перевод строки из 'home_url'
 		if (substr($_POST['home_url'], -1, 1) == '/')

@@ -41,40 +41,6 @@
 					</div>
 
 					<br/>
-					<div class="permBlock">
-						<div class="permHead">{l_perm.php}</div>
-						<div class="permData">
-							<table width="100%">
-								<thead>
-								<tr>
-									<td>{l_perm.php.param}</td>
-									<td>{l_perm.php.recommended}</td>
-									<td>{l_perm.php.installed}</td>
-								</thead>
-								<tr>
-									<td>Register Globals</td>
-									<td>{l_perm.php.off}</td>
-									<td>{flag:register_globals}</td>
-								</tr>
-								<tr>
-									<td>Magic Quotes GPC</td>
-									<td>{l_perm.php.off}</td>
-									<td>{flag:magic_quotes_gpc}</td>
-								</tr>
-								<tr>
-									<td>Magic Quotes Runtime</td>
-									<td>{l_perm.php.off}</td>
-									<td>{flag:magic_quotes_runtime}</td>
-								</tr>
-								<tr>
-									<td>Magic Quotes Sybase</td>
-									<td>{l_perm.php.off}</td>
-									<td>{flag:magic_quotes_sybase}</td>
-								</tr>
-							</table>
-						</div>
-					</div>
-
 				</td>
 				<td width="10">&nbsp;</td>
 				<td valign="top" width="500">

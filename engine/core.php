@@ -1,14 +1,17 @@
 <?php
 
-//
-// Copyright (C) 2006-2017 Next Generation CMS (http://ngcms.ru)
-// Name: core.php
-// Description: core
-// Author: NGCMS project team
-//
+/*
+ * Copyright (C) 2006-2018 Kerno CMS
+ *
+ * Name: core.php
+ * Description: core
+ *
+*/
 
 // Configure error display mode
 @error_reporting(E_ALL ^ E_NOTICE);
+//error_reporting(E_ALL);
+//ini_set('display_errors', 'on');
 
 // ============================================================================
 // Define global directory constants

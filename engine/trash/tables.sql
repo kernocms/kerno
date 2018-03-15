@@ -1,5 +1,5 @@
 -- -------------------------------------------------------- --
--- DEFAULT mySQL tables structure for NGCMS
+-- DEFAULT MySQL tables structure for Kerno CMS
 -- -------------------------------------------------------- --
 
 -- 
@@ -47,7 +47,7 @@ CREATE TABLE `XPREFIX_category` (
 -- 
 
 CREATE TABLE `XPREFIX_files` (
-  `id` int(10) NOT NULL auto_increment,
+  `id` int(11) UNSIGNED NOT NULL auto_increment,
   `name` varchar(100) NOT NULL default '',
   `orig_name` varchar(100) NOT NULL default '',
   `description` varchar(100) NOT NULL default '',
@@ -136,8 +136,8 @@ CREATE TABLE `XPREFIX_ipban` (
 -- 
 
 CREATE TABLE `XPREFIX_news` (
-  `id` int(11) NOT NULL auto_increment,
-  `postdate` int(10) NOT NULL default '0',
+  `id` int(11) UNSIGNED NOT NULL auto_increment,
+  `postdate` DATETIME NULL default NULL,
   `author` varchar(100) NOT NULL default '',
   `author_id` int(11) NOT NULL default '0',
   `title` varchar(255) NOT NULL default '',
@@ -152,15 +152,15 @@ CREATE TABLE `XPREFIX_news` (
   `flags` tinyint(1) default '0',
   `num_files` int(10) default '0',
   `num_images` int(10) default '0',
-  `editdate` int(10) NOT NULL default '0',
+  `editdate` DATETIME NULL DEFAULT NULL,
   `catid` varchar(255) NOT NULL default '0',
   `description` text NOT NULL,
   `keywords` text NOT NULL,
   `rating` int(10) NOT NULL default '0',
   `votes` int(10) NOT NULL default '0',
   PRIMARY KEY  (`id`),
-  KEY `alt_name` (`alt_name`),
-  KEY `news_title` (`title`),
+  KEY `news_title` (`title`(191)),
+  KEY `news_altname` (`alt_name`(30)),
   KEY `news_postdate` (`postdate`),
   KEY `news_editdate` (`editdate`),
   KEY `news_view` (`views`),
@@ -168,10 +168,9 @@ CREATE TABLE `XPREFIX_news` (
   KEY `news_main` (`pinned`,`postdate`,`approve`,`mainpage`),
   KEY `news_mainid` (`approve`,`mainpage`,`pinned`,`id`),
   KEY `news_catid` (`approve`,`catpinned`,`id`),
-  KEY `news_altname` (`alt_name`),
   KEY `news_mainpage` (`approve`,`pinned`,`id`),
   KEY `news_mcount` (`mainpage`,`approve`)
-) ENGINE=InnoDB;
+) ENGINE=MyISAM;
 
 -- --------------------------------------------------------
 
@@ -180,7 +179,7 @@ CREATE TABLE `XPREFIX_news` (
 -- 
 
 CREATE TABLE `XPREFIX_news_map` (
-  `newsID` int(11) default NULL,
+  `newsID` int(11) UNSIGNED default NULL,
   `categoryID` int(11) default NULL,
   `dt` datetime default NULL,
   KEY `newsID` (`newsID`),
@@ -223,8 +222,8 @@ CREATE TABLE `XPREFIX_users` (
   `news` int(10) default '0',
 --  `com` int(10) default '0',
   `status` tinyint(1) default '4',
-  `last` int(10) NOT NULL default '0',
-  `reg` int(10) NOT NULL default '0',
+  `last` DATETIME NULL default NULL,
+  `reg` DATETIME NULL default NULL,
   `site` varchar(100) default NULL,
   `icq` varchar(10) NOT NULL default '',
   `where_from` varchar(255) default NULL,
@@ -327,7 +326,7 @@ CREATE TABLE `XPREFIX_profiler` (
 -- 
 
 CREATE TABLE `XPREFIX_news_view` (
-	`id` INT(11) NOT NULL,
+	`id` INT(11) UNSIGNED NOT NULL,
 	`cnt` INT(11) DEFAULT '0',
 	PRIMARY KEY (`id`)
 ) ENGINE=InnoDB;

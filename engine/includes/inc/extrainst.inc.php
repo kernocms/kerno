@@ -1,11 +1,13 @@
 <?php
 
-//
-// Copyright (C) 2006-2011 Next Generation CMS (http://ngcms.ru/)
-// Name: extrainst.inc.php
-// Description: Functions required for plugin managment scripts
-// Author: Vitaly Ponomarev
-//
+/*
+ * Copyright (C) 2006-2018 Kerno CMS
+ *
+ * Name: extrainst.inc.php
+ * Description: Functions required for plugin managment scripts
+ * Author: Vitaly Ponomarev
+ *
+*/
 
 // Protect against hack attempts
 if (!defined('NGCMS')) die ('HAL');
@@ -204,7 +206,7 @@ function get_mysql_field_type($table, $field) {
 // Database update during install
 function fixdb_plugin_install($module, $params, $mode = 'install', $silent = false, &$is_error) {
 
-	global $lang, $tpl, $mysql, $main_admin;
+	global $lang, $tpl, $mysql, $main_admin, $PHP_SELF;
 
 	// Load config
 	plugins_load_config();
@@ -322,9 +324,10 @@ function fixdb_plugin_install($module, $params, $mode = 'install', $silent = fal
 			}
 
 			// Check if different character set are supported [ version >= 4.1.1 ]
-			$charset = is_array($mysql->record("show variables like 'character_set_client'")) ? (' DEFAULT CHARSET=' . ($table['charset'] ? $table['charset'] : 'utf8')) : '';
+			//$charset = is_array($mysql->record("show variables like 'character_set_client'")) ? (' DEFAULT CHARSET=' . ($table['charset'] ? $table['charset'] : 'utf8')) : '';
+            $charset = " CHARSET='utf8mb4' COLLATE='utf8mb4_unicode_ci'";
 
-			$query = "create table " . $chgTableName . " (" . implode(', ', $fieldlist) . ($table['key'] ? ', ' . $table['key'] : '') . ")" . $charset . ($table['engine'] ? ' engine=' . $table['engine'] : '');
+			$query = "CREATE TABLE " . $chgTableName . " (" . implode(', ', $fieldlist) . ($table['key'] ? ', ' . $table['key'] : '') . ")" . $charset . ($table['engine'] ? ' engine=' . $table['engine'] : '');
 			$mysql->query($query);
 			array_push($publish, array('title' => $publish_title, 'descr' => "SQL: [$query]", 'result' => ($publish_result ? $publish_result : ($error ? $lang['idbc_fail'] : $lang['idbc_ok']))));
 		} else {
@@ -406,6 +409,7 @@ function fixdb_plugin_install($module, $params, $mode = 'install', $silent = fal
 	$tpl->template('install-entries', tpl_actions . 'extra-config');
 
 	// Write an info
+    $entries = '';
 	foreach ($publish as $v) {
 		$tvars['vars'] = $v;
 		if ($tvars['vars']['error']) {
@@ -433,12 +437,14 @@ function fixdb_plugin_install($module, $params, $mode = 'install', $silent = fal
 	if (!$silent) {
 		$main_admin = $tpl->show('install-process');
 	}
+
+    return $publish_error ? false : true;
 }
 
 // Create install page
 function generate_install_page($plugin, $text, $stype = 'install') {
 
-	global $tpl, $lang, $main_admin;
+	global $tpl, $lang, $main_admin, $PHP_SELF;
 
 	$tpl->template('install', tpl_actions . 'extra-config');
 	$tvars['vars'] = array(
