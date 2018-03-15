@@ -1,11 +1,13 @@
 <?php
 
-//
-// Copyright (C) 2006-2015 Next Generation CMS (http://ngcms.ru/)
-// Name: consts.inc.php
-// Description: Initializing global consts
-// Author: Vitaly Ponomarev
-//
+/*
+ * Copyright (C) 2006-2018 Kerno CMS
+ *
+ * Name: consts.inc.php
+ * Description: Initializing global consts
+ * Author: Vitaly Ponomarev
+ *
+*/
 
 // Determine current admin working directory
 {
@@ -16,10 +18,10 @@
 
 @define('NGCMS', true);
 
-@define('engineName', 'NGCMS');
-@define('engineVersion', '1.0.0 DEV');
+@define('engineName', 'Kerno');
+@define('engineVersion', '1.0.0-dev');
 @define('engineVersionType', 'GIT');
-@define('engineVersionBuild', '20170302');
+@define('engineVersionBuild', '20180301');
 
 @define('prefix', $config['prefix']);
 @define('uprefix', $config['uprefix']);
@@ -49,4 +51,3 @@
 
 @define('conf_pactive', confroot . 'plugins.php', true);
 @define('conf_pconfig', confroot . 'plugdata.php', true);
-

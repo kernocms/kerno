@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright (C) 2006-2018 Kerno
+ * Copyright (C) 2006-2018 Kerno CMS
  *
  * Name: index.php
  * Description: core index file

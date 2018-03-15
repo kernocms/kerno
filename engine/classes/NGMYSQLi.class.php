@@ -1,5 +1,10 @@
 <?php
 
+/*
+ * Copyright (C) 2018 Kerno CMS
+ *
+*/
+
 class NGMYSQLi extends NGDB {
 
     protected $db               = null;
@@ -9,7 +14,7 @@ class NGMYSQLi extends NGDB {
     protected $errorSecurity    = 0;
     protected $eventLogger      = null;
     protected $errorHandler     = null;
-    protected $dbCharset        = 'UTF8';
+    protected $dbCharset        = 'utf8mb4';
 
     function __construct($params) {
         if (!is_array($params)) {
