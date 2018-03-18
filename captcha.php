@@ -1,13 +1,14 @@
 <?php
 
-//
-// Copyright (C) 2006-2011 Next Generation CMS (http://ngcms.ru)
-// Name: captcha.php
-// Description: printing captcha
-// Author: NGCMS project team
-//
+/*
+ * Copyright (C) 2006-2018 Kerno CMS
+ *
+ * Name: captcha.php
+ * Description: printing captcha
+ *
+*/
 
-@require_once('core.php');
+@require_once('engine/core.php');
 @include_once root . 'includes/classes/captcha.class.php';
 
 // Print HTTP headers

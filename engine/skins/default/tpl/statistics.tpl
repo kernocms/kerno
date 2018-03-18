@@ -70,23 +70,23 @@
 		<td width="50%" style="padding-left:10px;" valign="top">
 			<table border="0" width="100%" cellspacing="0" cellpadding="0">
 				<tr>
-					<td colspan="2" class="contentHead"><img src="{{ skins_url }}/images/nav.gif" hspace="8" alt=""/>Next
-						Generation CMS
+					<td colspan="2" class="contentHead"><img src="{{ skins_url }}/images/nav.gif" hspace="8" alt=""/>
+                        Kerno CMS
 					</td>
 				</tr>
 				<tr>
-					<td width="45%" class="contentEntry1">{{ lang['current_version'] }}</td>
+					<td width="45%" class="contentEntry1">{{ lang['kerno_current_version'] }}</td>
 					<td width="55%" class="contentEntry2">
 						<span style="font-weight: bold; color: #6cb7ef;">{{ currentVersion }}</span></td>
 				</tr>
 				<tr>
-					<td width="45%" class="contentEntry1">{{ lang['last_version'] }}</td>
-					<td width="55%" class="contentEntry2"><span id="syncLastVersion">loading..</span></td>
+					<td width="45%" class="contentEntry1">{{ lang['kerno_stable_version'] }}</td>
+					<td width="55%" class="contentEntry2"><span id="syncLastVersion">1.0.0-dev</span></td>
 				</tr>
-				<tr>
-					<td width="45%" class="contentEntry1">{{ lang['git_version'] }}</td>
-					<td width="55%" class="contentEntry2"><span id="syncSVNVersion">loading..</span></td>
-				</tr>
+                <tr>
+                    <td width="45%" class="contentEntry1">{{ lang['kerno_last_version'] }}</td>
+                    <td width="55%" class="contentEntry2"><span id="syncLastVersion">1.0.0-dev</span></td>
+                </tr>
 			</table>
 		</td>
 	</tr>

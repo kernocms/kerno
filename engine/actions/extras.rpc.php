@@ -8,7 +8,7 @@
 //
 
 // Protect against hack attempts
-if (!defined('NGCMS')) die ('HAL');
+if (!defined('KERNO')) die ('HAL');
 
 header("Content-Type: text/html; charset=utf-8");
 setlocale(LC_ALL, 'ru_RU.UTF-8');

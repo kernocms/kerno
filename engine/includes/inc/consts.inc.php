@@ -5,7 +5,8 @@
  *
  * Name: consts.inc.php
  * Description: Initializing global consts
- * Author: Vitaly Ponomarev
+ *
+ * @author Vitaly Ponomarev
  *
 */
 
@@ -16,12 +17,10 @@
 	unset($tempVariable);
 }
 
-@define('NGCMS', true);
+@define('KERNO', true);
 
-@define('engineName', 'Kerno');
-@define('engineVersion', '1.0.0-dev');
-@define('engineVersionType', 'GIT');
-@define('engineVersionBuild', '20180301');
+@define('ENGINE_NAME', 'Kerno');
+@define('ENGINE_VERSION', '1.0.0-dev');
 
 @define('prefix', $config['prefix']);
 @define('uprefix', $config['uprefix']);

@@ -8,7 +8,7 @@
 //
 
 // Protect against hack attempts
-if (!defined('NGCMS')) die ('HAL');
+if (!defined('KERNO')) die ('HAL');
 
 // ==============================================================
 //  Module functions
@@ -38,12 +38,13 @@ function phpConfigGetBytes($size_str) {
 }
 
 function coreVersionSync() {
-
 	global $config;
+    return '';
+
 	if (($vms = cacheRetrieveFile('coreversion.dat', 86400)) === false) {
-		$paramList = array('ver' => urlencode(engineVersion), 'type' => urlencode(engineVersionType), 'build' => urlencode(engineVersionBuild), 'uuid' => $config['UUID'], 'pdo' => ((extension_loaded('PDO') && extension_loaded('pdo_mysql') && class_exists('PDO')) ? 'yes' : 'no'));
+		$paramList = array('ver' => urlencode(ENGINE_VERSION), 'type' => urlencode(engineVersionType), 'build' => urlencode(engineVersionBuild), 'uuid' => $config['UUID'], 'pdo' => ((extension_loaded('PDO') && extension_loaded('pdo_mysql') && class_exists('PDO')) ? 'yes' : 'no'));
 		$req = new http_get();
-		$vms = $req->get('http://ngcms.ru/sync/versionInfo.php' . '?' . http_build_query($paramList), 3, 1);
+		//$vms = $req->get('http://ngcms.ru/sync/versionInfo.php' . '?' . http_build_query($paramList), 3, 1);
 		cacheStoreFile('coreversion.dat', $vms);
 	}
 
@@ -146,19 +147,14 @@ $news_unapp = ($news_unapp == "0") ? $news_unapp : '<font color="#ff6600">' . $n
 $users_unact = $mysql->result("SELECT count(id) FROM " . uprefix . "_users WHERE activation != ''");
 $users_unact = ($users_unact == "0") ? $users_unact : '<font color="#ff6600">' . $users_unact . '</font>';
 
-// Display GIT guild version if versionType == GIT
-$displayEngineVersion = (engineVersionType == "GIT") ?
-	engineVersion . " + GIT " . engineVersionBuild :
-	engineVersion . " " . engineVersionType;
-
 $tVars = array(
 	'php_self'         => $PHP_SELF,
 	'php_os'           => PHP_OS,
 	'php_version'      => phpversion(),
 	'mysql_version'    => $mysql->mysql_version(),
-	'gd_version'       => (isset($gd_version) && is_array($gd_version)) ? $gd_version["GD Version"] : '<font color="red"><b>NOT INSTALLED</b></font>',
-	'currentVersion'   => $displayEngineVersion,
-	'versionNotify'    => coreVersionSync(),
+	'gd_version'       => (isset($gd_version) && is_array($gd_version)) ? $gd_version["GD Version"] : '<span style="color:red;"><b>NOT INSTALLED</b></span>',
+	'currentVersion'   => ENGINE_VERSION,
+	'versionNotify'    => 'develop', //coreVersionSync(),
 	'mysql_size'       => $mysql_size,
 	'allowed_size'     => $df,
 	'avatars'          => $avatars,

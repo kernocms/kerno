@@ -8,7 +8,7 @@
 //
 
 // Protect against hack attempts
-if (!defined('NGCMS')) die ('HAL');
+if (!defined('KERNO')) die ('HAL');
 
 $lang = LoadLang('perm', 'admin');
 

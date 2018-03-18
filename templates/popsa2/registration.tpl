@@ -13,7 +13,7 @@
 			{% if flags.hasCaptcha %}
 				<div class="input">
 					<label>Проверочный код</label>
-					<img src="{{ admin_url }}/captcha.php" class="left" onclick="reload_captcha();" id="img_captcha" style="cursor: pointer;" alt="Security code"/>
+					<img src="{{ home_url }}/captcha.php" class="left" onclick="reload_captcha();" id="img_captcha" style="cursor: pointer;" alt="Security code"/>
 					<input type="text" name="vcode" style="width:80px"/>
 					<div class="clear10"></div>
 				</div>
@@ -26,7 +26,7 @@
 	function reload_captcha() {
 		var captc = document.getElementById('img_captcha');
 		if (captc != null) {
-			captc.src = "{{ admin_url }}/captcha.php?rand=" + Math.random();
+			captc.src = "{{ home_url }}/captcha.php?rand=" + Math.random();
 		}
 	}
 </script>

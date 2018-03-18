@@ -159,12 +159,11 @@ $handlerList = array (
     'flagDisabled' => false,
     'rstyle' => 
     array (
-      'rcmd' => '/lostpassword/[{userid}-{code}/]',
-      'regex' => '#^/lostpassword/(?:(\\d+)-(.+?)/){0,1}$#',
+      'rcmd' => '/lostpassword/[resetcode/{code}/]',
+      'regex' => '#^/lostpassword/(?:resetcode/(.+?)/){0,1}$#',
       'regexMap' => 
       array (
-        1 => 'userid',
-        2 => 'code',
+        1 => 'code',
       ),
       'reqCheck' => 
       array (
@@ -182,23 +181,17 @@ $handlerList = array (
         ),
         1 => 
         array (
-          0 => 1,
-          1 => 'userid',
+          0 => 0,
+          1 => 'resetcode/',
           2 => 1,
         ),
         2 => 
-        array (
-          0 => 0,
-          1 => '-',
-          2 => 1,
-        ),
-        3 => 
         array (
           0 => 1,
           1 => 'code',
           2 => 1,
         ),
-        4 => 
+        3 => 
         array (
           0 => 0,
           1 => '/',
@@ -274,7 +267,7 @@ $handlerList = array (
     'rstyle' => 
     array (
       'rcmd' => '/[page/{page}/]',
-      'regex' => '#^/(?:page/(\\d+)/){0,1}$#',
+      'regex' => '#^/(?:page/(\\d{1,4})/){0,1}$#',
       'regexMap' => 
       array (
         1 => 'page',
@@ -676,7 +669,7 @@ $handlerList = array (
     'rstyle' => 
     array (
       'rcmd' => '/{year}-{month}[-page{page}].html',
-      'regex' => '#^/(\\d{4})-(\\d{2})(?:-page(\\d+)){0,1}.html$#',
+      'regex' => '#^/(\\d{4})-(\\d{2})(?:-page(\\d{1,4})){0,1}.html$#',
       'regexMap' => 
       array (
         1 => 'year',
@@ -746,7 +739,7 @@ $handlerList = array (
     'rstyle' => 
     array (
       'rcmd' => '/{year}[-page{page}].html',
-      'regex' => '#^/(\\d{4})(?:-page(\\d+)){0,1}.html$#',
+      'regex' => '#^/(\\d{4})(?:-page(\\d{1,4})){0,1}.html$#',
       'regexMap' => 
       array (
         1 => 'year',
@@ -847,7 +840,7 @@ $handlerList = array (
     'rstyle' => 
     array (
       'rcmd' => '/{category}/page/{page}.html',
-      'regex' => '#^/(.+?)/page/(\\d+).html$#',
+      'regex' => '#^/(.+?)/page/(\\d{1,4}).html$#',
       'regexMap' => 
       array (
         1 => 'category',
@@ -904,7 +897,7 @@ $handlerList = array (
     'rstyle' => 
     array (
       'rcmd' => '/{category}/{altname}[/page{page}].html',
-      'regex' => '#^/(.+?)/(.+?)(?:/page(\\d+)){0,1}.html$#',
+      'regex' => '#^/(.+?)/(.+?)(?:/page(\\d{1,4})){0,1}.html$#',
       'regexMap' => 
       array (
         1 => 'category',
@@ -974,7 +967,7 @@ $handlerList = array (
     'rstyle' => 
     array (
       'rcmd' => '/{category}/{altname}[/page{page}].print',
-      'regex' => '#^/(.+?)/(.+?)(?:/page(\\d+)){0,1}.print$#',
+      'regex' => '#^/(.+?)/(.+?)(?:/page(\\d{1,4})){0,1}.print$#',
       'regexMap' => 
       array (
         1 => 'category',
@@ -1044,7 +1037,7 @@ $handlerList = array (
     'rstyle' => 
     array (
       'rcmd' => '/{category}[/page/{page}].html',
-      'regex' => '#^/(.+?)(?:/page/(\\d+)){0,1}.html$#',
+      'regex' => '#^/(.+?)(?:/page/(\\d{1,4})){0,1}.html$#',
       'regexMap' => 
       array (
         1 => 'category',

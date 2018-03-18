@@ -5,14 +5,16 @@
  *
  * Name: install.php
  * Description: System installer
- * Author: Vitaly Ponomarev
+ *
+ * @author Vitaly Ponomarev
+ * @author Dmitry Ryzhkov
  *
 */
 
 @header('content-type: text/html; charset=utf-8');
 
 @error_reporting(E_ALL ^ E_NOTICE);
-define('NGCMS', 1);
+define('KERNO', 1);
 
 // Basic variables
 @define('root', dirname(__FILE__) . '/');
@@ -40,13 +42,13 @@ function NGInstall($f) { $f(); }
 // MODULE DEPs check + basic setup
 // ============================================================================
 NGInstall(function() {
-	$depList = array(
-		'sql' => array('pdo' => '', 'pdo_mysql' => ''),
+	$depList = [
+		'sql' => ['pdo' => '', 'pdo_mysql' => ''],
 		'zlib' => 'ob_gzhandler',
 		'iconv' => 'iconv',
 		'GD' => 'imagecreatefromjpeg',
 		'mbstring' => 'mb_internal_encoding'
-	);
+	];
 	NGCoreFunctions::resolveDeps($depList);
 
 	$sx = NGEngine::getInstance();
@@ -91,10 +93,10 @@ $templateDir = root . 'skins/default/install';
 $homeURL = 'http://' . $_SERVER['HTTP_HOST'] . '/' . ($a = join("/", array_slice(preg_split('/(\\\|\/)/', $_SERVER['REQUEST_URI'], -1, PREG_SPLIT_NO_EMPTY), 0, -2))) . ($a ? '/' : '');
 $templateURL = $homeURL . $adminDirName . '/skins/default/install';
 $scriptLibrary = $homeURL . 'lib';
-$ERR = array();
+$ERR = [];
 
-$tvars = array('vars' => array('templateURL' => $templateURL, 'homeURL' => $homeURL, 'scriptLibrary' => $scriptLibrary));
-foreach (array('begin', 'db', 'plugins', 'template', 'perm', 'common', 'install') as $v) {
+$tvars = ['vars' => ['templateURL' => $templateURL, 'homeURL' => $homeURL, 'scriptLibrary' => $scriptLibrary]];
+foreach ( ['begin', 'db', 'plugins', 'template', 'perm', 'common', 'install'] as $v ) {
 	$tvars['vars']['menu_' . $v] = '';
 }
 
@@ -129,8 +131,8 @@ if ($flagPendingChanges) {
 	include_once root . "includes/inc/extraconf.inc.php";
 	include_once root . "includes/inc/extrainst.inc.php";
 
-	$LOG = array();
-	$ERROR = array();
+	$LOG = [];
+	$ERROR = [];
 	$error = 0;
 
 	// Reinit INSTALL language file
@@ -210,7 +212,7 @@ function doWelcome() {
 
 	$langs = ListFiles('lang', '');
 
-	$lang_select = mkLanguageSelect(array('values' => $langs, 'value' => $currentLanguage, 'id' => 'language', 'name' => 'language'));
+	$lang_select = mkLanguageSelect(['values' => $langs, 'value' => $currentLanguage, 'id' => 'language', 'name' => 'language']);
 	$tvars['vars']['lang_select'] = $lang_select;
 
 	// Load license
@@ -268,11 +270,11 @@ function doConfig_db($check) {
 
 	global $tvars, $tpl, $templateDir, $SQL_VERSION, $lang;
 	
-	$myparams = array('action', 'stage', 'reg_dbtype', 'reg_dbhost', 'reg_dbname', 'reg_dbuser', 'reg_dbpass', 'reg_dbprefix', 'reg_autocreate', 'reg_dbadminuser', 'reg_dbadminpass');
-	$DEFAULT = array('reg_dbhost' => 'localhost', 'reg_dbprefix' => 'kerno');
+	$myparams = ['action', 'stage', 'reg_dbtype', 'reg_dbhost', 'reg_dbname', 'reg_dbuser', 'reg_dbpass', 'reg_dbprefix', 'reg_autocreate', 'reg_dbadminuser', 'reg_dbadminpass'];
+	$DEFAULT = ['reg_dbhost' => 'localhost', 'reg_dbprefix' => 'kerno'];
 	
 	// Show form
-	$hinput = array();
+	$hinput = [];
 	foreach ($_POST as $k => $v)
 		if (array_search($k, $myparams) === false)
 			$hinput[] = '<input type="hidden" name="' . $k . '" value="' . htmlspecialchars($v, ENT_COMPAT | ENT_HTML401, 'UTF-8') . '"/>';
@@ -281,7 +283,7 @@ function doConfig_db($check) {
 	if ($check) {
 		// Check passed parameters. Check for required params
 		$error = 0;
-		foreach (array('reg_dbtype', 'reg_dbhost', 'reg_dbname', 'reg_dbuser') as $k) {
+		foreach (['reg_dbtype', 'reg_dbhost', 'reg_dbname', 'reg_dbuser'] as $k) {
 			if (!strlen($_POST[$k])) {
 				$tvars['vars']['err:' . $k] = $lang['error.notfilled'];
 				$error++;
@@ -305,13 +307,25 @@ function doConfig_db($check) {
 			
 			switch($_POST['reg_dbtype']){
 				case 'MySQL':
-					$sx->set('db', new NGMYSQL(array('host' => $_POST['reg_dbhost'], 'user' => $_POST['reg_db' . ($ac ? 'admin' : '') . 'user'], 'pass' => $_POST['reg_db' . ($ac ? 'admin' : '') . 'pass'])));
+					$sx->set('db', new NGMYSQL([
+                        'host' => $_POST['reg_dbhost'],
+                        'user' => $_POST['reg_db' . ($ac ? 'admin' : '') . 'user'],
+                        'pass' => $_POST['reg_db' . ($ac ? 'admin' : '') . 'pass']
+                    ]));
 				break;
 				case 'MySQLi':
-					$sx->set('db', new NGMYSQLi(array('host' => $_POST['reg_dbhost'], 'user' => $_POST['reg_db' . ($ac ? 'admin' : '') . 'user'], 'pass' => $_POST['reg_db' . ($ac ? 'admin' : '') . 'pass'])));
+					$sx->set('db', new NGMYSQLi([
+                        'host' => $_POST['reg_dbhost'],
+                        'user' => $_POST['reg_db' . ($ac ? 'admin' : '') . 'user'],
+                        'pass' => $_POST['reg_db' . ($ac ? 'admin' : '') . 'pass']
+                    ]));
 				break;
 				case 'PDO':
-					$sx->set('db', new NGPDO(array('host' => $_POST['reg_dbhost'], 'user' => $_POST['reg_db' . ($ac ? 'admin' : '') . 'user'], 'pass' => $_POST['reg_db' . ($ac ? 'admin' : '') . 'pass'])));
+					$sx->set('db', new NGPDO([
+                        'host' => $_POST['reg_dbhost'],
+                        'user' => $_POST['reg_db' . ($ac ? 'admin' : '') . 'user'],
+                        'pass' => $_POST['reg_db' . ($ac ? 'admin' : '') . 'pass']
+                    ]));
 				break;
 			}
 			
@@ -320,7 +334,7 @@ function doConfig_db($check) {
 			$mysql = $sx->getLegacyDB();
 			$sqlr = $mysql->mysql_version();
 			if (preg_match('/^(\d+)\.(\d+)/', $sqlr, $regex)) {
-				$SQL_VERSION = array($sqlr, intval($regex[1]), intval($regex[2]));
+				$SQL_VERSION = [$sqlr, intval($regex[1]), intval($regex[2])];
 			} else {
 				$SQL_VERSION = $sqlr;
 			}
@@ -343,19 +357,16 @@ function doConfig_db($check) {
 			return true;
 	}
 	
-	foreach (array(
-				 'reg_dbtype', 'reg_dbhost', 'reg_dbuser', 'reg_dbpass', 'reg_dbname', 'reg_dbprefix',
-				 'reg_autocreate', 'reg_dbadminuser', 'reg_dbadminpass'
-			 ) as $k) {
+	foreach (['reg_dbtype', 'reg_dbhost', 'reg_dbuser', 'reg_dbpass', 'reg_dbname', 'reg_dbprefix', 'reg_autocreate', 'reg_dbadminuser', 'reg_dbadminpass'] as $k) {
 		if($k == 'reg_dbtype'){
-			foreach(array('MySQL', 'MySQLi', 'PDO') as $s)
-				if($_POST[$k] == $s)
-					$tvars['vars'][$k.'_'.$s] = ' selected';
+			foreach(['MySQL', 'MySQLi', 'PDO'] as $s) {
+                if($_POST[$k] == $s) $tvars['vars'][$k.'_'.$s] = ' selected';
+            }
 		} else $tvars['vars'][$k] = htmlspecialchars(isset($_POST[$k]) ? $_POST[$k] : $DEFAULT[$k], ENT_COMPAT | ENT_HTML401, 'UTF-8');
 		if (!isset($tvars['vars']['err:' . $k])) $tvars['vars']['err:' . $k] = '';
 	}
-	if ($_POST['reg_autocreate'])
-		$tvars['vars']['reg_autocreate'] = 'checked="checked"';
+
+	if ($_POST['reg_autocreate']) $tvars['vars']['reg_autocreate'] = 'checked="checked"';
 
 	$tvars['vars']['menu_db'] = ' class="hover"';
 	printHeader();
@@ -460,10 +471,10 @@ function doConfig_perm() {
 
 	$tvars['regx']["'\[error_button\](.*?)\[/error_button\]'si"] = ($error || $warning) ? '$1' : '';
 
-	$myparams = array('action', 'stage');
+	$myparams = ['action', 'stage'];
 
 	// Show form
-	$hinput = array();
+	$hinput = [];
 	foreach ($_POST as $k => $v)
 		if (array_search($k, $myparams) === false)
 			$hinput[] = '<input type="hidden" name="' . $k . '" value="' . htmlspecialchars($v, ENT_COMPAT | ENT_HTML401, 'UTF-8') . '"/>';
@@ -494,11 +505,11 @@ function doConfig_plugins() {
 
 			if (is_dir($pluginsDir . '/' . $dName) && file_exists($vfn = $pluginsDir . '/' . $dName . '/version') && (filesize($vfn)) && ($vf = @fopen($vfn, 'r'))) {
 
-				$pluginRec = array();
+				$pluginRec = [];
 				while (!feof($vf)) {
 					$line = fgets($vf);
 					if (preg_match("/^(.+?) *\: *(.+?) *$/i", trim($line), $m)) {
-						if (in_array(strtolower($m[1]), array('id', 'title', 'information', 'preinstall', 'preinstall_vars', 'install')))
+						if (in_array(strtolower($m[1]), ['id', 'title', 'information', 'preinstall', 'preinstall_vars', 'install']))
 							$pluginRec[strtolower($m[1])] = $m[2];
 					}
 				}
@@ -514,18 +525,18 @@ function doConfig_plugins() {
 	}
 	
 	// Prepare array for input list
-	$hinput = array();
+	$hinput = [];
 	// Collect data for all plugins
 
 	$output = '';
 	$tpl->template('config_prow', $templateDir);
 	foreach ($pluglist as $plugin) {
-		$tv = array(
+		$tv = [
 			'id'          => $plugin['id'],
 			'title'       => $plugin['title'],
 			'information' => $plugin['information'],
-			'enable'      => (in_array(strtolower($plugin['preinstall']), array('yes', 'no'))) ? ' disabled="disabled"' : '',
-		);
+			'enable'      => (in_array(strtolower($plugin['preinstall']), ['yes', 'no'])) ? ' disabled="disabled"' : '',
+		];
 		// Add hidden field for DISABLED plugins
 		if (strtolower($plugin['preinstall']) == 'yes') {
 			$output .= '<input type="hidden" name="plugin:' . $plugin['id'] . '" value="1"/>' . "\n";
@@ -534,18 +545,18 @@ function doConfig_plugins() {
 		if (isset($_POST['plugin:' . $plugin['id']])) {
 			$tv['check'] = $_POST['plugin:' . $plugin['id']] ? ' checked="checked"' : '';
 		} else {
-			$tv['check'] = (in_array(strtolower($plugin['preinstall']), array('default_yes', 'yes'))) ? ' checked="checked"' : '';
+			$tv['check'] = (in_array(strtolower($plugin['preinstall']), ['default_yes', 'yes'])) ? ' checked="checked"' : '';
 		}
 
 		//$hinput[] = '<input type="hidden" name="plugin:'.$plugin['id'].'" value="0"/>';
 
-		$tpl->vars('config_prow', array('vars' => $tv));
+		$tpl->vars('config_prow', ['vars' => $tv]);
 		$output .= $tpl->show('config_prow');
 	}
 	$tvars['vars']['plugins'] = $output;
 
 	// Show form
-	$myparams = array('action', 'stage');
+	$myparams = ['action', 'stage'];
 	foreach ($_POST as $k => $v)
 		if ((array_search($k, $myparams) === false) && (!preg_match('/^plugin\:/', $k)))
 			$hinput[] = '<input type="hidden" name="' . $k . '" value="' . htmlspecialchars($v, ENT_COMPAT | ENT_HTML401, 'UTF-8') . '"/>';
@@ -564,7 +575,7 @@ function doConfig_templates() {
 	printHeader();
 
 	// Now we should scan templates for version information
-	$tlist = array();
+	$tlist = [];
 
 	$tDir = $installDir . '/templates';
 	if ($dRec = opendir($tDir)) {
@@ -574,11 +585,11 @@ function doConfig_templates() {
 
 			if (is_dir($tDir . '/' . $dName) && file_exists($vfn = $tDir . '/' . $dName . '/version') && (filesize($vfn)) && ($vf = @fopen($vfn, 'r'))) {
 
-				$tRec = array('name' => $dName);
+				$tRec = ['name' => $dName];
 				while (!feof($vf)) {
 					$line = fgets($vf);
 					if (preg_match("/^(.+?) *\: *(.+?) *$/i", trim($line), $m)) {
-						if (in_array(strtolower($m[1]), array('id', 'title', 'author', 'version', 'reldate', 'plugins', 'image', 'imagepreview')))
+						if (in_array(strtolower($m[1]), ['id', 'title', 'author', 'version', 'reldate', 'plugins', 'image', 'imagepreview']))
 							$tRec[strtolower($m[1])] = $m[2];
 					}
 				}
@@ -602,7 +613,7 @@ function doConfig_templates() {
 	$output = '';
 
 	foreach ($tlist as $trec) {
-		$trvars = array('vars' => $trec);
+		$trvars = ['vars' => $trec];
 		$trvars['vars']['checked'] = ($_POST['template'] == $trec['name']) ? ' checked="checked"' : '';
 		$trvars['vars']['templateURL'] = $homeURL . '/templates';
 
@@ -612,9 +623,9 @@ function doConfig_templates() {
 	}
 	$tvars['vars']['templates'] = $output;
 
-	$myparams = array('action', 'stage', 'template');
+	$myparams = ['action', 'stage', 'template'];
 	// Show form
-	$hinput = array();
+	$hinput = [];
 	foreach ($_POST as $k => $v)
 		if (array_search($k, $myparams) === false)
 			$hinput[] = '<input type="hidden" name="' . $k . '" value="' . htmlspecialchars($v, ENT_COMPAT | ENT_HTML401, 'UTF-8') . '"/>';
@@ -633,9 +644,9 @@ function doConfig_common() {
 	$tvars['vars']['menu_common'] = ' class="hover"';
 	printHeader();
 
-	$myparams = array('action', 'stage', 'admin_login', 'admin_password', 'admin_email', 'autodata', 'home_url', 'home_title');
+	$myparams = ['action', 'stage', 'admin_login', 'admin_password', 'admin_email', 'autodata', 'home_url', 'home_title'];
 	// Show form
-	$hinput = array();
+	$hinput = [];
 	foreach ($_POST as $k => $v)
 		if (array_search($k, $myparams) === false)
 			$hinput[] = '<input type="hidden" name="' . $k . '" value="' . htmlspecialchars($v, ENT_COMPAT | ENT_HTML401, 'UTF-8') . '"/>';
@@ -645,7 +656,7 @@ function doConfig_common() {
 	if (!isset($_POST['home_url'])) $_POST['home_url'] = $homeURL;
 	if (!isset($_POST['home_title'])) $_POST['home_title'] = $lang['common.title.default'];
 
-	foreach (array('admin_login', 'admin_password', 'admin_email', 'home_url', 'home_title') as $k) {
+	foreach (['admin_login', 'admin_password', 'admin_email', 'home_url', 'home_title'] as $k) {
 		$tvars['vars'][$k] = isset($_POST[$k]) ? htmlspecialchars($_POST[$k], ENT_COMPAT | ENT_HTML401, 'UTF-8') : '';
 	}
 
@@ -664,24 +675,24 @@ function doInstall() {
 	$tvars['vars']['menu_install'] = ' class="hover"';
 	printHeader();
 
-	$myparams = array('action', 'stage');
+	$myparams = ['action', 'stage'];
 	// Show form
-	$hinput = array();
+	$hinput = [];
 	foreach ($_POST as $k => $v)
 		if (array_search($k, $myparams) === false)
 			$hinput[] = '<input type="hidden" name="' . $k . '" value="' . htmlspecialchars($v, ENT_COMPAT | ENT_HTML401, 'UTF-8') . '"/>';
 	$tvars['vars']['hinput'] = join("\n", $hinput);
 
 	// Error indicator
-	$frec = array();
+	$frec = [];
 	$error = 0;
-	$LOG = array();
-	$ERROR = array();
+	$LOG = [];
+	$ERROR = [];
 	$sx = null;
 	do {
 
 		// Stage #01 - Try to create config files
-		foreach (array('config.php', 'plugins.php', 'plugdata.php') as $k) {
+		foreach (['config.php', 'plugins.php', 'plugdata.php'] as $k) {
 			if (($frec[$k] = fopen(confroot . $k, 'w')) == null) {
 				array_push($ERROR, $lang['err.createconfig1'] . ' <b>' . $k . '</b><br/>' . $lang['err.createconfig2']);
 				$error = 1;
@@ -701,13 +712,25 @@ function doInstall() {
 				
 				switch($_POST['reg_dbtype']){
 					case 'MySQL':
-						$sx->set('db', new NGMYSQL(array('host' => $_POST['reg_dbhost'], 'user' => $_POST['reg_dbadminuser'], 'pass' => $_POST['reg_dbadminpass'])));
+						$sx->set('db', new NGMYSQL([
+                            'host' => $_POST['reg_dbhost'],
+                            'user' => $_POST['reg_dbadminuser'],
+                            'pass' => $_POST['reg_dbadminpass']
+                        ]));
 					break;
 					case 'MySQLi':
-						$sx->set('db', new NGMYSQLi(array('host' => $_POST['reg_dbhost'], 'user' => $_POST['reg_dbadminuser'], 'pass' => $_POST['reg_dbadminpass'])));
+						$sx->set('db', new NGMYSQLi([
+                            'host' => $_POST['reg_dbhost'],
+                            'user' => $_POST['reg_dbadminuser'],
+                            'pass' => $_POST['reg_dbadminpass']
+                        ]));
 					break;
 					case 'PDO':
-						$sx->set('db', new NGPDO(array('host' => $_POST['reg_dbhost'], 'user' => $_POST['reg_dbadminuser'], 'pass' => $_POST['reg_dbadminpass'])));
+						$sx->set('db', new NGPDO([
+                            'host' => $_POST['reg_dbhost'],
+                            'user' => $_POST['reg_dbadminuser'],
+                            'pass' => $_POST['reg_dbadminpass']
+                        ]));
 					break;
 				}
 				
@@ -732,7 +755,7 @@ function doInstall() {
 				} else {
 					array_push($LOG, 'БД "' . $_POST['reg_dbname'] . '" уже существует ... OK');
 				}
-                
+
 				// 2. Предоставление доступа к БД
 				if (!$mysql->query("grant all privileges on " . $_POST['reg_dbname'] . ".* to '" . $_POST['reg_dbuser'] . "'@'" . $_POST['reg_dbhost'] . "' identified by '" . $_POST['reg_dbpass'] . "'")) {
 					array_push($ERROR, 'Невозможно обеспечить доступ пользователя "' . $_POST['reg_dbuser'] . '" к БД "' . $_POST['reg_dbname'] . '" используя административные права.');
@@ -757,13 +780,25 @@ function doInstall() {
 			
 			switch($_POST['reg_dbtype']){
 				case 'MySQL':
-					$sx->set('db', new NGMYSQL(array('host' => $_POST['reg_dbhost'], 'user' => $_POST['reg_dbuser'], 'pass' => $_POST['reg_dbpass'])));
+					$sx->set('db', new NGMYSQL([
+                        'host' => $_POST['reg_dbhost'],
+                        'user' => $_POST['reg_dbuser'],
+                        'pass' => $_POST['reg_dbpass']
+                    ]));
 				break;
 				case 'MySQLi':
-					$sx->set('db', new NGMYSQLi(array('host' => $_POST['reg_dbhost'], 'user' => $_POST['reg_dbuser'], 'pass' => $_POST['reg_dbpass'])));
+					$sx->set('db', new NGMYSQLi([
+                        'host' => $_POST['reg_dbhost'],
+                        'user' => $_POST['reg_dbuser'],
+                        'pass' => $_POST['reg_dbpass']
+                    ]));
 				break;
 				case 'PDO':
-					$sx->set('db', new NGPDO(array('host' => $_POST['reg_dbhost'], 'user' => $_POST['reg_dbuser'], 'pass' => $_POST['reg_dbpass'])));
+					$sx->set('db', new NGPDO([
+                        'host' => $_POST['reg_dbhost'],
+                        'user' => $_POST['reg_dbuser'],
+                        'pass' => $_POST['reg_dbpass']
+                    ]));
 				break;
 			}
 			
@@ -771,7 +806,7 @@ function doInstall() {
 			$sx->getLegacyDB()->connect('', '', '');
 			$mysql = $sx->getLegacyDB();
 			
-			array_push($LOG, 'Подключение к серверу БД "' . $_POST['reg_dbhost'] . '" используя логин "' . $_POST['reg_dbuser'] . '" ... OK');
+			array_push($LOG, 'Подключение к серверу БД "' . $_POST['reg_dbhost'] . '" используя логин "' . $_POST['reg_dbuser'] . '" ... <span style="color:green;"><b>OK</b></span>');
 			
 			if ($mysql->select_db($_POST['reg_dbname']) === null) {
 				array_push($ERROR, 'Невозможно открыть БД "' . $_POST['reg_dbname'] . '"<br/>Вам необходимо создать эту БД самостоятельно.');
@@ -800,7 +835,7 @@ function doInstall() {
 		// 1. Проверяем наличие пересекающихся таблиц
 		// 1.1. Загружаем список таблиц из БД
 
-		$list = array();
+		$list = [];
 
 		if (!($query = $mysql->query("show tables"))) {
 			array_push($ERROR, 'Внутренняя ошибка SQL при получении списка таблиц БД. Обратитесь к автору проект за разъяснениями.');
@@ -808,8 +843,8 @@ function doInstall() {
 			break;
 		}
 
-		$SQL_table = array();
-		foreach ($mysql->select("show tables", -1) as $item) {
+		$SQL_table = [];
+		foreach ($mysql->select("SHOW TABLES", -1) as $item) {
 			$SQL_table[$item[0]] = 1;
 		}
 
@@ -839,7 +874,7 @@ function doInstall() {
 		
 		if ($error) break;
 
-		array_push($LOG, 'Проверка наличия дублирующихся таблиц ... OK');
+		array_push($LOG, 'Проверка наличия дублирующихся таблиц ... <span style="color:green;"><b>OK</b></span>');
 		array_push($LOG, '');
 
 		$SUPRESS_CHARSET = 0;
@@ -882,39 +917,29 @@ function doInstall() {
 					$error = 1;
 					break;
 				}
-				array_push($LOG, 'Создание таблицы "<b>' . $tname . '</b>" ... OK');
+				array_push($LOG, 'Создание таблицы "<b>' . $tname . '</b>" ... <span style="color:green;"><b>OK</b></span>');
 			}
 		}
-		array_push($LOG, 'Все таблицы успешно созданы ... OK');
+		array_push($LOG, 'Все таблицы успешно созданы ... <span style="color:green;"><b>OK</b></span>');
 		array_push($LOG, '');
-		
-		// 1.5 Создание пользователя-администратора
-        $dateReg = date("Y-m-d H:i:s");
-        $userPass = md5(md5($_POST['admin_password']));
-		$query = "INSERT INTO `" . $_POST['reg_dbprefix'] . "_users` (`name`, `pass`, `mail`, `status`, `reg`) VALUES ('
-" . $mysql->db_quote(trim($_POST['admin_login'])) . "', '" . $mysql->db_quote($userPass) . "', '" . $mysql->db_quote(trim($_POST['admin_email'])) . "', '1', '".$dateReg."')";
-		if (!@$mysql->query($query)) {
-			array_push($LOG, 'Активация пользователя-администратора ... <font color="red">FAIL</font>');
-		} else {
-			array_push($LOG, 'Активация пользователя-администратора ... OK');
-		}
 
-		// 1.6 Сохраняем конфигурационную переменную database.engine.version
+		// 1.5 Сохраняем конфигурационную переменную database.engine.version
         @include_once 'includes/inc/consts.inc.php';
 
-		@$mysql->query("INSERT INTO `" . $_POST['reg_dbprefix'] . "_config` (name, value) VALUES ('database.engine.version', '".engineVersion."')");
+		@$mysql->query("INSERT INTO `" . $_POST['reg_dbprefix'] . "_config` (name, value) VALUES ('database.engine.version', '".ENGINE_VERSION."')");
 
 		// Вычищаем лишний перевод строки из 'home_url'
 		if (substr($_POST['home_url'], -1, 1) == '/')
 			$_POST['home_url'] = substr($_POST['home_url'], 0, -1);
 
-		// 1.7. Формируем конфигурационный файл
-		$newconf = array(
+		// 1.6. Формируем конфигурационный файл
+		$newconf = [
 			'dbhost'              => $_POST['reg_dbhost'],
 			'dbname'              => $_POST['reg_dbname'],
 			'dbuser'              => $_POST['reg_dbuser'],
 			'dbpasswd'            => $_POST['reg_dbpass'],
 			'prefix'              => $_POST['reg_dbprefix'],
+            'uprefix'             => $_POST['reg_dbprefix'],
 			'home_url'            => $_POST['home_url'],
 			'admin_url'           => $_POST['home_url'] . '/' . $adminDirName,
 			'images_dir'          => $installDir . '/uploads/images/',
@@ -962,7 +987,7 @@ function doInstall() {
 			'flood_time'          => '20',
 			'timestamp_comment'   => 'j.m.Y - H:i',
 			'users_selfregister'  => '1',
-			'register_type'       => '4',
+			'register_type'       => 'manual_with_notify',
 			'use_avatars'         => '1',
 			'avatar_wh'           => '65',
 			'avatar_max_size'     => '16',
@@ -986,9 +1011,9 @@ function doInstall() {
 			'debug'               => 1,
 			'news_multicat_url'   => '1',
 			'UUID'                => md5(mt_rand() . mt_rand()) . md5(mt_rand() . mt_rand()),
-		);
+		];
 
-		array_push($LOG, "Подготовка параметров конфигурационного файла ... OK");
+		array_push($LOG, 'Подготовка параметров конфигурационного файла ... <span style="color:green;"><b>OK</b></span>');
 
 		// Записываем конфиг
 		$confData = "<?php\n" . '$config = ' . var_export($newconf, true) . ";\n";
@@ -1000,16 +1025,16 @@ function doInstall() {
 		}
 
 		// Активируем плагин auth_basic
-		$plugConf = array(
-			'active'  => array(
+		$plugConf = [
+			'active'  => [
 				'auth_basic' => 'auth_basic'
-			),
-			'actions' => array(
-				'auth' => array(
+			],
+			'actions' => [
+				'auth' => [
 					'auth_basic' => 'auth_basic/auth_basic.php',
-				),
-			),
-		);
+				],
+			],
+		];
 
 		$plugData = "<?php\n" . '$array = ' . var_export($plugConf, true) . ";\n";
 		$plugData = mb_convert_encoding($plugData, 'UTF-8', 'auto');
@@ -1020,7 +1045,7 @@ function doInstall() {
 		}
 
 		// А теперь - включаем необходимые плагины
-		$pluginInstallList = array();
+		$pluginInstallList = [];
 		foreach ($_POST as $k => $v) {
 			if (preg_match('/^plugin\:(.+?)$/', $k, $m) && ($v == 1)) {
 				array_push($pluginInstallList, $m[1]);
@@ -1028,21 +1053,33 @@ function doInstall() {
 		}
 
 		// Закрываем все файлы
-		foreach (array_keys($frec) as $k)
-			fclose($frec[$k]);
+		foreach (array_keys($frec) as $k){
+            fclose($frec[$k]);
+        }
 
-		array_push($LOG, 'Сохранение конфигурационного файла ... OK');
+		array_push($LOG, 'Сохранение конфигурационного файла ... <span style="color:green;"><b>OK</b></span>');
 
 		// А теперь - включаем необходимые плагины
 		include_once root . "core.php";
 		include_once root . "includes/inc/extraconf.inc.php";
 		include_once root . "includes/inc/extrainst.inc.php";
 
+        //Создание пользователя-администратора
+        global $AUTH_METHOD;
+        $userPass = $AUTH_METHOD['basic']->createPassword(trim($_POST['admin_password']));
+
+        $query = "INSERT INTO `" . $_POST['reg_dbprefix'] . "_users` (`name`, `pass`, `mail`, `status`, `registration_date`) VALUES ('" . $mysql->db_quote(trim($_POST['admin_login'])) . "', '" . $mysql->db_quote($userPass) . "', '" . $mysql->db_quote(trim($_POST['admin_email'])) . "', '1', '".getDatetimeUTC()."')";
+        if (!@$mysql->query($query)) {
+            array_push($LOG, 'Активация пользователя-администратора ... <span style="color:red;"><b>FAIL</b></span>');
+        } else {
+            array_push($LOG, 'Активация пользователя-администратора ... <span style="color:green;"><b>OK</b></span>');
+        }
+
 		// Now let's install plugins
 		// First: Load informational `version` files
 		$list = get_extras_list();
 		// Подготавливаем список плагинов для установки
-		$pluginInstallList = array();
+		$pluginInstallList = [];
 		foreach ($_POST as $k => $v) {
 			if (preg_match('/^plugin\:(.+?)$/', $k, $m) && ($v == 1)) {
 				array_push($pluginInstallList, $m[1]);

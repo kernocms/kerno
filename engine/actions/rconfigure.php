@@ -3,9 +3,10 @@
 @include_once '..\core.php';
 
 // Protect against hack attempts
-if (!defined('NGCMS')) die ('HAL');
+if (!defined('KERNO')) die ('HAL');
 
-include_once '../includes/classes/uhandler.class.php';
+@include_once '../includes/classes/UrlLibrary.php';
+@include_once '../includes/classes/UrlHandler.php';
 $ULIB = new urlLibrary();
 $ULIB->loadConfig();
 

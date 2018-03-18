@@ -8,7 +8,7 @@
 //
 
 // Protect against hack attempts
-if (!defined('NGCMS')) die ('HAL');
+if (!defined('KERNO')) die ('HAL');
 
 // Load library
 @include_once root . 'includes/classes/upload.class.php';
@@ -143,7 +143,7 @@ function admConfigurationTestEMail($params) {
 	@include_once root . 'includes/classes/phpmailer/PHPMailerAutoload.php';
 	$mail = new PHPMailer;
 
-	$fromName = ($params['from']['name'] ? $params['from']['name'] : 'NGCMS Mail Agent');
+	$fromName = ($params['from']['name'] ? $params['from']['name'] : 'Kerno Mail Agent');
 
 	$mail->setFrom($params['from']['email'], $fromName);
 	$mail->CharSet = 'UTF-8';

@@ -1,16 +1,19 @@
 <?php
 
-//
-// Copyright (C) 2006-2012 Next Generation CMS (http://ngcms.ru/)
-// Name: parse.class.php
-// Description: Parsing and formatting routines
-// Author: Vitaly Ponomarev, Alexey Zinchenko
-//
+/*
+ * Copyright (C) 2006-2018 Kerno CMS
+ *
+ * Description: Parsing and formatting routines
+ *
+ * @author Vitaly Ponomarev
+ * @author Alexey Zinchenko
+ *
+*/
 
 // Protect against hack attempts
-if (!defined('NGCMS')) die ('HAL');
+if (!defined('KERNO')) die ('HAL');
 
-class parse {
+class Parse {
 
 	function slashes($content) {
 

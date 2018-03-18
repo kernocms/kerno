@@ -8,7 +8,7 @@
 //
 
 // Protect against hack attempts
-if (!defined('NGCMS')) die ('HAL');
+if (!defined('KERNO')) die ('HAL');
 
 @include_once root . 'includes/inc/extraconf.inc.php';
 @include_once root . 'includes/inc/extrainst.inc.php';

@@ -7,16 +7,24 @@
  * Description: core index file
  * 
 */
- 
+
 // Override charset
 @header('content-type: text/html; charset=utf-8');
 
 // Check for minimum supported PHP version
 if (version_compare(PHP_VERSION, '7.1.0') < 0) {
 	@header('content-type: text/html; charset=utf-8');
-	print "<html><head><title>NGCMS required PHP version 7.1+ / Необходима версия PHP 7.1 или выше</title></head><body><div style='font: 24px verdana; background-color: #EEEEEE; border: #ABCDEF 1px solid; margin: 1px; padding: 3px;'><span style='color: red;'>FATAL ERROR / Фатальная ошибка</span><br/><br/><span style=\"font: 16px arial;\"> NGCMS requires PHP version <b>7.1+</b><br/>Please ask your hosting provider to upgrade your account</span><br/><hr/><span style=\"font: 16px arial;\"> Для работы NGCMS требуется PHP версии <b>7.1</b> или выше.<br/>Обратитесь к вашему хостинг провайдеру для обновления версии</span></div></body></html>";
+	print "<html><head><title>Kerno required PHP version 7.1+ / Необходима версия PHP 7.1 или выше</title></head><body><div
+style='font: 24px verdana; background-color: #EEEEEE; border: #ABCDEF 1px solid; margin: 1px; padding: 3px;'><span
+style='color: red;'>FATAL ERROR / Фатальная ошибка</span><br/><br/><span style=\"font: 16px arial;\"> Kerno requires PHP
+ version <b>7.1+</b><br/>Please ask your hosting provider to upgrade your account</span><br/><hr/><span style=\"font:
+  16px arial;\"> Для работы Kerno требуется PHP версии <b>7.1</b> или выше.<br/>Обратитесь к вашему хостинг
+  провайдеру для обновления версии</span></div></body></html>";
 	exit;
 }
+
+define('KERNO_ENV', 'prod'); //prod, dev
+define('KERNO_START', microtime(true));
 
 // Load CORE module
 @include_once 'engine/core.php';
@@ -25,14 +33,14 @@ if (version_compare(PHP_VERSION, '7.1.0') < 0) {
 initGZipHandler();
 
 // Define default TITLE
-$SYSTEM_FLAGS['info']['title'] = array();
+$SYSTEM_FLAGS['info']['title'] = [];
 $SYSTEM_FLAGS['info']['title']['header'] = home_title;
 
 // Initialize main template array
 $template = array(
 	'vars' => array(
-		'what'       => engineName,
-		'version'    => engineVersion,
+		'what'       => ENGINE_NAME,
+		'version'    => ENGINE_VERSION,
 		'home'       => home,
 		'titles'     => home_title,
 		'home_title' => home_title,
@@ -44,7 +52,7 @@ $template = array(
 // ===================================================================
 // Check if site access is locked [ for everyone except admins ]
 // ===================================================================
-if ($config['lock'] && (!is_array($userROW) || (!checkPermission(array('plugin' => '#admin', 'item' => 'system'), null, 'lockedsite.view')))) {
+if ($config['lock'] && (!is_array($userROW) || (!checkPermission(['plugin' => '#admin', 'item' => 'system'], null, 'lockedsite.view')))) {
 	$tvars = $template;
 	$tvars['vars']['lock_reason'] = $config['lock_reason'];
 

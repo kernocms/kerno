@@ -179,11 +179,11 @@ CREATE TABLE `XPREFIX_news` (
 -- 
 
 CREATE TABLE `XPREFIX_news_map` (
-  `newsID` int(11) UNSIGNED default NULL,
-  `categoryID` int(11) default NULL,
-  `dt` datetime default NULL,
-  KEY `newsID` (`newsID`),
-  KEY `categoryID` (`categoryID`)
+  `news_id` int(11) UNSIGNED default NULL,
+  `category_id` int(11) default NULL,
+  `dt` DATETIME NULL default NULL,
+  KEY `nm_newsID` (`news_id`),
+  KEY `nm_categoryID` (`category_id`)
 ) ENGINE=InnoDB;
 
 -- --------------------------------------------------------
@@ -217,13 +217,13 @@ CREATE TABLE `XPREFIX_static` (
 CREATE TABLE `XPREFIX_users` (
   `id` int(10) NOT NULL auto_increment,
   `name` varchar(100) NOT NULL default '',
+  `pass` varchar(100) default NULL,
   `mail` varchar(80) default NULL,
-  `pass` varchar(32) default NULL,
   `news` int(10) default '0',
 --  `com` int(10) default '0',
   `status` tinyint(1) default '4',
-  `last` DATETIME NULL default NULL,
-  `reg` DATETIME NULL default NULL,
+  `lastenter_date` TIMESTAMP NULL default NULL,
+  `registration_date` DATETIME NULL default NULL,
   `site` varchar(100) default NULL,
   `icq` varchar(10) NOT NULL default '',
   `where_from` varchar(255) default NULL,
@@ -232,11 +232,26 @@ CREATE TABLE `XPREFIX_users` (
   `photo` varchar(100) NOT NULL default '',
   `activation` varchar(25) NOT NULL default '',
   `ip` varchar(15) NOT NULL default '0',
-  `newpw` varchar(32) default NULL,
   `authcookie` varchar(50) default NULL,
   PRIMARY KEY  (`id`),
   KEY `users_name` (`name`),
   KEY `users_auth` (`authcookie`)
+) ENGINE=InnoDB;
+
+-- --------------------------------------------------------
+
+--
+-- Table `PREFIX_users_restorepass`
+--
+
+CREATE TABLE `XPREFIX_users_restorepass` (
+  `id` int(11) NOT NULL auto_increment,
+  `user_id` int(11) NOT NULL default '0',
+  `code` char(20) default '',
+  `request_date` TIMESTAMP NULL default NULL,
+  `is_restored` tinyint(1) default 0,
+  PRIMARY KEY  (`id`),
+  KEY `restorepass_code` (`code`)
 ) ENGINE=InnoDB;
 
 -- --------------------------------------------------------

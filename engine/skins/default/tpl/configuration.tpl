@@ -706,7 +706,7 @@
 					<td class="contentEntry1">{{ lang['register_type'] }}<br/>
 						<small>{{ lang['register_type_desc'] }}</small>
 					</td>
-					<td class="contentEntry2" valign="middle">{{ mkSelect({'name' : 'save_con[register_type]', 'value' : config['register_type'], 'values' : { 0 : lang['register_extremly'], 1 : lang['register_simple'], 2 : lang['register_activation'], 3 : lang['register_manual'], 4 : lang['register_manual_confirm']  } }) }}</td>
+					<td class="contentEntry2" valign="middle">{{ mkSelect({'name' : 'save_con[register_type]', 'value' : config['register_type'], 'values' : { 'quick' : lang['register_extremly'], 'simple' : lang['register_simple'], 'simple_with_notify' : lang['register_activation'], 'manual_with_notify' : lang['register_manual'], 'manual_simple' : lang['register_manual_simple'], 'manual_confirm' : lang['register_manual_confirm']  } }) }}</td>
 				</tr>
 				<tr>
 					<td class="contentEntry1">{{ lang['user_aboutsize'] }}<br/>
