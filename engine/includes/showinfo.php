@@ -10,7 +10,7 @@
 include_once "../core.php";
 
 // Protect against hack attempts
-if (!defined('NGCMS')) die ('HAL');
+if (!defined('KERNO')) die ('HAL');
 
 header("Content-Type: text/html; charset=utf-8");
 

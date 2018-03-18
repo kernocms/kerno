@@ -10,7 +10,7 @@
 @include_once 'core.php';
 
 // Protect against hack attempts
-if (!defined('NGCMS')) die ('HAL');
+if (!defined('KERNO')) die ('HAL');
 
 //
 // Add json_decode() support for PHP < 5.2.0
@@ -130,7 +130,8 @@ function rpcRewriteSubmit($params) {
 		return array('status' => 0, 'errorCode' => 3, 'errorText' => 'Access denied (token)');
 	}
 
-	@include_once 'includes/classes/uhandler.class.php';
+    @include_once 'includes/classes/UrlLibrary.php';
+    @include_once 'includes/classes/UrlHandler.php';
 	$ULIB = new urlLibrary();
 	$ULIB->loadConfig();
 

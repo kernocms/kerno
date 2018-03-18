@@ -8,7 +8,7 @@
 //
 
 // Protect against hack attempts
-if (!defined('NGCMS')) die ('HAL');
+if (!defined('KERNO')) die ('HAL');
 
 // Load library
 @include_once root . 'includes/classes/upload.class.php';
@@ -254,7 +254,7 @@ function admCategoriesRPCmodify($params) {
 			}
 
 			// Check for news in category
-			$refNCount = $mysql->record("select count(*) as cnt from " . prefix . "_news_map where categoryID = " . intval($params['id']));
+			$refNCount = $mysql->record("select count(*) as cnt from " . prefix . "_news_map where category_id = " . intval($params['id']));
 			if ($refNCount['cnt'] > 0) {
 				return array('status' => 0, 'errorCode' => 12, 'errorText' => 'Category have news, please delete news from this category first');
 			}

@@ -36,8 +36,7 @@
 //			false    - when news is not found
 //			data     - when news is found && export is used
 //			news row - when news is found
-function news_showone($newsID, $alt_name, $callingParams = array()) {
-
+function news_showone($newsID, $alt_name, $callingParams = []) {
 	global $mysql, $tpl, $userROW, $catz, $catmap, $config, $template, $parse, $lang, $SYSTEM_FLAGS, $PFILTERS, $EXTRA_HTML_VARS;
 	global $timer;
 	global $year, $month, $day;
@@ -51,9 +50,9 @@ function news_showone($newsID, $alt_name, $callingParams = array()) {
 	} else {
 
 		if ($newsID) {
-			$filter = array('id=' . db_squote($newsID));
+			$filter = ['id=' . db_squote($newsID)];
 		} elseif ($alt_name) {
-			$filter = array('alt_name=' . db_squote($alt_name));
+			$filter = ['alt_name=' . db_squote($alt_name)];
 		} else {
 			return false;
 		}
@@ -572,7 +571,7 @@ function news_showlist($filterConditions = array(), $paginationParams = array(),
 		$pages_count = 1;
 	} else {
 		if (isset($callingParams['paginationCategoryID']) && ($callingParams['paginationCategoryID'] > 0)) {
-			$query['count'] = 'SELECT count(*) FROM ' . prefix . '_news_map where categoryID = ' . db_squote($callingParams['paginationCategoryID']);
+			$query['count'] = 'SELECT count(*) FROM ' . prefix . '_news_map where category_id = ' . db_squote($callingParams['paginationCategoryID']);
 		} else {
 			$query['count'] = "SELECT count(*) as count FROM " . prefix . "_news WHERE " . $query['filter'];
 		}

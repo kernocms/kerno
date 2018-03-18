@@ -18,7 +18,7 @@
 				{% endfor %}
 				{% if flags.hasCaptcha %}
 					<tr>
-						<td><img src="{{ admin_url }}/captcha.php"></td>
+						<td><img src="{{ home_url }}/captcha.php"></td>
 						<td><input class="input" type="text" name="vcode" style="width:80px"/></td>
 					</tr>
 				{% endif %}

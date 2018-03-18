@@ -9,9 +9,13 @@
 */
 
 // Configure error display mode
-@error_reporting(E_ALL ^ E_NOTICE);
-//error_reporting(E_ALL);
-//ini_set('display_errors', 'on');
+if(defined('KERNO_ENV') && KERNO_ENV == 'dev'){
+    error_reporting(E_ALL);
+    ini_set('display_errors', 'on');
+} else {
+    @error_reporting(E_ALL ^ E_NOTICE);
+}
+//
 
 // ============================================================================
 // Define global directory constants
@@ -34,13 +38,13 @@ function NGRun($f) { $f(); }
 // MODULE DEPs check + basic setup
 // ============================================================================
 NGRun(function() {
-	$depList = array(
-		'sql' => array('pdo' => '', 'pdo_mysql' => ''),
+	$depList = [
+		'sql' => ['pdo' => '', 'pdo_mysql' => ''],
 		'zlib' => 'ob_gzhandler',
 		'iconv' => 'iconv',
 		'GD' => 'imagecreatefromjpeg',
 		'mbstring' => 'mb_internal_encoding'
-	);
+	];
 	NGCoreFunctions::resolveDeps($depList);
 
 	$sx = NGEngine::getInstance();
@@ -65,43 +69,43 @@ global $twigGlobal, $twig, $twigLoader, $twigStringLoader;
 // ============================================================================
 // Initialize global variables
 // ============================================================================
-$EXTRA_HTML_VARS = array();        // a list of added HTML vars in <head> block
-$EXTRA_CSS = array();
+$EXTRA_HTML_VARS = [];        // a list of added HTML vars in <head> block
+$EXTRA_CSS = [];
 
-$AUTH_METHOD = array();
-$AUTH_CAPABILITIES = array();
+$AUTH_METHOD = [];
+$AUTH_CAPABILITIES = [];
 
-$PPAGES = array();        // plugin's pages
-$PFILTERS = array();        // filtering plugins
-$RPCFUNC = array();        // RPC functions
-$TWIGFUNC = array();        // TWIG defined functions
-$RPCADMFUNC = array();        // RPC admin functions
+$PPAGES = [];        // plugin's pages
+$PFILTERS = [];        // filtering plugins
+$RPCFUNC = [];        // RPC functions
+$TWIGFUNC = [];        // TWIG defined functions
+$RPCADMFUNC = [];        // RPC admin functions
 
-$PERM = array();        // PERMISSIONS
-$UGROUP = array();        // USER GROUPS
+$PERM = [];        // PERMISSIONS
+$UGROUP = [];        // USER GROUPS
 
 $SUPRESS_TEMPLATE_SHOW = 0;
 $SUPRESS_MAINBLOCK_SHOW = 0;
 
-$CurrentHandler = array();
-$TemplateCache = array();
-$lang = array();
-$SYSTEM_FLAGS = array(
-	'actions.disabled' => array(),
-	'http.headers'     => array(
+$CurrentHandler = [];
+$TemplateCache = [];
+$lang = [];
+$SYSTEM_FLAGS = [
+	'actions.disabled' => [],
+	'http.headers'     => [
 		'content-type'  => 'text/html; charset=utf-8',
 		'cache-control' => 'private',
-	)
-);
+	]
+];
 
-$twigGlobal = array(
-	'flags' => array(
+$twigGlobal = [
+	'flags' => [
 		'isLogged' => 0,
-	),
-);
+	],
+];
 
 // List of DataSources
-$DSlist = array(
+$DSlist = [
 	'news'           => 1,
 	'categories'     => 2,
 	'comments'       => 3,
@@ -109,16 +113,16 @@ $DSlist = array(
 	'files'          => 10,
 	'images'         => 11,
 	'#xfields:tdata' => 51,
-);
+];
 
-$PLUGINS = array(
-	'active'        => array(),
+$PLUGINS = [
+	'active'        => [],
 	'active:loaded' => 0,
-	'loaded'        => array(),
-	'loaded:files'  => array(),
-	'config'        => array(),
+	'loaded'        => [],
+	'loaded:files'  => [],
+	'config'        => [],
 	'config:loaded' => 0,
-);
+];
 
 mb_internal_encoding('UTF-8');
 mb_http_output('UTF-8');
@@ -136,26 +140,26 @@ if (preg_match_all("#^(.+?)\:\d+$#", $ngCookieDomain, $m)) {
 
 // Manage trackID cookie - can be used for plugins that don't require authentication,
 // but need to track user according to his ID
-if (!isset($_COOKIE['ngTrackID'])) {
-	$ngTrackID = md5(md5(uniqid(rand(), 1)));
-	@setcookie('ngTrackID', $ngTrackID, time() + 86400 * 365, '/', $ngCookieDomain, 0, 1);
+if (!isset($_COOKIE['visitTrackID'])) {
+	$visitTrackID = md5(md5(uniqid(rand(), 1)));
+	@setcookie('visitTrackID', $visitTrackID, time() + 86400 * 365, '/', $ngCookieDomain, 0, 1);
 } else {
-	$ngTrackID = $_COOKIE['ngTrackID'];
+	$visitTrackID = $_COOKIE['visitTrackID'];
 }
 
 // Initialize last variables
-$confArray = array(
+$confArray = [
 	// Pre-defined init values
-	'predefined' => array(
+	'predefined' => [
 		'HTTP_REFERER' => isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '',
 		'PHP_SELF'     => isset($_SERVER['PHP_SELF']) ? $_SERVER['PHP_SELF'] : '',
 		'REQUEST_URI'  => isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '',
-		'config'       => array(),
-		'catz'         => array(),
-		'catmap'       => array(),
+		'config'       => [],
+		'catz'         => [],
+		'catmap'       => [],
 		'is_logged'    => false,
-	)
-);
+	]
+];
 
 // Load pre-defined variables
 foreach ($confArray['predefined'] as $key => $value) {
@@ -173,7 +177,7 @@ if (($tmp_pos = strpos($systemAccessURL, '?')) !== false) {
 // Initialize system libraries
 // ============================================================================
 // ** Time measurement functions
-include_once root . 'includes/classes/timer.class.php';
+include_once root . 'includes/classes/Timer.php';
 $timer = new microTimer;
 $timer->start();
 
@@ -206,14 +210,18 @@ multi_multidomains();
 @session_start();
 
 // ** Load system libraries
-@include_once root . 'includes/inc/consts.inc.php';
+include_once root . 'includes/inc/consts.inc.php';
 @include_once root . 'includes/inc/functions.inc.php';
+@include_once root . 'includes/inc/functionsTemplate.php';
+@include_once root . 'includes/inc/functionsNews.php';
 @include_once root . 'includes/inc/extras.inc.php';
+@include_once root . 'includes/contracts/AuthProvider.php';
 
 @include_once 'includes/classes/templates.class.php';
-@include_once 'includes/classes/parse.class.php';
+@include_once 'includes/classes/Parse.php';
 
-@include_once 'includes/classes/uhandler.class.php';
+@include_once 'includes/classes/UrlLibrary.php';
+@include_once 'includes/classes/UrlHandler.php';
 
 // [[MARKER]] All system libraries are loaded
 $timer->registerEvent('Core files are included');
@@ -223,7 +231,7 @@ $UHANDLER = new urlHandler();
 $UHANDLER->loadConfig();
 
 // ** Other libraries
-$parse = new parse;
+$parse = new Parse;
 $tpl = new tpl;
 $ip = checkIP();
 
@@ -234,7 +242,7 @@ if ((!file_exists(confroot . 'config.php')) || (filesize(confroot . 'config.php'
 	} else {
 		@header("Location: " . adminDirName . "/install.php");
 	}
-	echo "NGCMS: Engine is not installed yet. Please run installer from /engine/install.php";
+	echo ENGINE_NAME.': Engine is not installed yet. Please run installer from /engine/install.php';
 	exit;
 }
 
@@ -256,13 +264,13 @@ $twigLoader = new Twig_Loader_NGCMS(root);
 $twigStringLoader = new Twig_Loader_String();
 
 // - Configure environment and general parameters
-$twig = new Twig_Environment($twigLoader, array(
+$twig = new Twig_Environment($twigLoader, [
 	'cache'               => root . 'cache/twig/',
 	'auto_reload'         => true,
 	'autoescape'          => false,
 	'charset'             => 'UTF-8',
 	'base_template_class' => 'Twig_Template_NGCMS',
-));
+]);
 
 $twig->addExtension(new Twig_Extension_StringLoader());
 
@@ -280,7 +288,7 @@ $twig->addGlobal('currentURL', $systemAccessURL);
 
 // - Define functions
 $twig->addFunction('pluginIsActive', new Twig_Function_Function('getPluginStatusActive'));
-$twig->addFunction('localPath', new Twig_Function_Function('twigLocalPath', array('needs_context' => true)));
+$twig->addFunction('localPath', new Twig_Function_Function('twigLocalPath', ['needs_context' => true]));
 $twig->addFunction('getLang', new Twig_Function_Function('twigGetLang'));
 $twig->addFunction('isLang', new Twig_Function_Function('twigIsLang'));
 $twig->addFunction('isHandler', new Twig_Function_Function('twigIsHandler'));
@@ -288,8 +296,8 @@ $twig->addFunction('isCategory', new Twig_Function_Function('twigIsCategory'));
 $twig->addFunction('isNews', new Twig_Function_Function('twigIsNews'));
 $twig->addFunction('isPerm', new Twig_Function_Function('twigIsPerm'));
 $twig->addFunction('callPlugin', new Twig_Function_Function('twigCallPlugin'));
-$twig->addFunction('isSet', new Twig_Function_Function('twigIsSet', array('needs_context' => true)));
-$twig->addFunction('debugContext', new Twig_Function_Function('twigDebugContext', array('needs_context' => true)));
+$twig->addFunction('isSet', new Twig_Function_Function('twigIsSet', ['needs_context' => true]));
+$twig->addFunction('debugContext', new Twig_Function_Function('twigDebugContext', ['needs_context' => true]));
 $twig->addFunction('debugValue', new Twig_Function_Function('twigDebugValue'));
 $twig->addFunction('getCategoryTree', new Twig_Function_Function('twigGetCategoryTree'));
 $twig->addFunction('engineMSG', new Twig_Function_Function('twigEngineMSG'));
@@ -301,11 +309,11 @@ $twig->addFilter('truncateHTML', new Twig_Filter_Function('twigTruncateHTML'));
 $timer->registerEvent('Template engine is activated');
 
 // Give domainName to URL handler engine for generating absolute links
-$UHANDLER->setOptions(array('domainPrefix' => $config['home_url']));
+$UHANDLER->setOptions(['domainPrefix' => $config['home_url']]);
 
 // Check if engine is installed in subdirectory
 if (preg_match('#^http\:\/\/([^\/])+(\/.+)#', $config['home_url'], $match))
-	$UHANDLER->setOptions(array('localPrefix' => $match[2]));
+	$UHANDLER->setOptions(['localPrefix' => $match[2]]);
 
 // ** Load cache engine
 @include_once root . 'includes/classes/cache.class.php';
@@ -323,13 +331,28 @@ NGRun(function() {
 	
 	switch($config['dbtype']){
 		case 'mysqli':
-			$sx->set('db', new NGMYSQLi(array('host' => $config['dbhost'], 'user' => $config['dbuser'], 'pass' => $config['dbpasswd'], 'db' => $config['dbname'], 'charset' => 'utf8')));
+			$sx->set('db', new NGMYSQLi([
+                'host' => $config['dbhost'],
+                'user' => $config['dbuser'],
+                'pass' => $config['dbpasswd'],
+                'db' => $config['dbname'],
+                'charset' => 'utf8mb4']));
 		break;
 		case 'pdo':
-			$sx->set('db', new NGPDO(array('host' => $config['dbhost'], 'user' => $config['dbuser'], 'pass' => $config['dbpasswd'], 'db' => $config['dbname'], 'charset' => 'utf8')));
+			$sx->set('db', new NGPDO([
+                'host' => $config['dbhost'],
+                'user' => $config['dbuser'],
+                'pass' => $config['dbpasswd'],
+                'db' => $config['dbname'],
+                'charset' => 'utf8mb4']));
 		break;
 		default:
-			$sx->set('db', new NGMYSQLi(array('host' => $config['dbhost'], 'user' => $config['dbuser'], 'pass' => $config['dbpasswd'], 'db' => $config['dbname'], 'charset' => 'utf8')));
+			$sx->set('db', new NGMYSQLi([
+                'host' => $config['dbhost'],
+                'user' => $config['dbuser'],
+                'pass' => $config['dbpasswd'],
+                'db' => $config['dbname'],
+                'charset' => 'utf8mb4']));
 	}
 	
 	$sx->set('legacyDB', new NGLegacyDB(false));
@@ -355,6 +378,7 @@ if ($config['libcompat']) {
 
 //
 // Special way to pass authentication cookie via POST params
+//TODO
 if (!isset($_COOKIE['zz_auth']) && isset($_POST['ngAuthCookie']))
 	$_COOKIE['zz_auth'] = $_POST['ngAuthCookie'];
 
@@ -386,7 +410,7 @@ if ((is_object($AUTH_METHOD[$config['auth_module']])) && (is_object($AUTH_METHOD
 	}
 	$auth_db = &$AUTH_METHOD[$config['auth_db']];
 
-	$xrow = $auth_db->check_auth();
+	$xrow = $auth_db->checkAuth();
 	$CURRENT_USER = $xrow;
 
 	if (isset($xrow['name']) && $xrow['name']) {
@@ -431,7 +455,7 @@ $timer->registerEvent('ALL core-related plugins are executed');
 @define('tpl_url', home . '/templates/' . $config['theme']);
 
 // - TWIG: Reconfigure allowed template paths - site template is also available
-$twigLoader->setPaths(array(tpl_site, root));
+$twigLoader->setPaths([tpl_site, root]);
 
 // - TWIG: Added global variable `tpl_url`, `scriptLibrary`
 $twig->addGlobal('tpl_url', tpl_url);

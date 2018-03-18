@@ -1,17 +1,20 @@
 <?php
 
-//
-// Copyright (C) 2006-2015 Next Generation CMS (http://ngcms.ru/)
-// Name: cmodules.php
-// Description: Common CORE modules
-// Author: Vitaly Ponomarev
-//
+/*
+ * Copyright (C) 2006-2018 Kerno CMS
+ *
+ * Name: cmodules.php
+ * Description: Common CORE modules
+ *
+ * @author Vitaly Ponomarev
+ * @author Dmitry Ryzhkov
+ *
+*/
 
 // Protect against hack attempts
-if (!defined('NGCMS')) die ('HAL');
+if (!defined('KERNO')) die ('HAL');
 
 function coreActivateUser() {
-
 	global $lang, $config, $SYSTEM_FLAGS, $mysql, $CurrentHandler;
 
 	$lang = LoadLang('activation', 'site');
@@ -28,23 +31,23 @@ function coreActivateUser() {
 	}
 
 	// Check if user exists with ID = $userid
-	if (is_array($uRow = $mysql->record("select * from " . prefix . "_users where id=" . db_squote($userid)))) {
-		// User found. Check activation.
-		if ($uRow['activation']) {
-			if ($uRow['activation'] == $code) {
-				// Yeah, activate user!
-				$mysql->query("update `" . uprefix . "_users` set activation = '' where id = " . db_squote($userid));
+	if ( is_array($userRow = $mysql->record("SELECT * FROM " . $config['prefix'] . "_users WHERE id=" . (int)$userid)) ) {
 
-				msg(array("text" => $lang['msgo_activated'], "info" => sprintf($lang['msgi_activated'], admin_url)));
+		if ($userRow['activation']) {
+			if ($userRow['activation'] == $code) {
+				// Yeah, activate user!
+				$mysql->query("UPDATE `" . uprefix . "_users` SET activation = '' WHERE id = " . (int)$userid);
+
+				msg(["text" => $lang['msgo_activated'], "info" => $lang['msgi_activated']]);
 				$SYSTEM_FLAGS['module.usermenu']['redirect'] = $config['home_url'] . '/';
 			} else {
 				// Incorrect activation code
-				msg(array("text" => $lang['msge_activate'], "info" => sprintf($lang['msgi_activate'], admin_url)));
+				msg(["text" => $lang['msge_activate'], "info" => $lang['msgi_activate']]);
 			}
 		} else {
 			// Already activated
-			print "ALREADY";
-			msg(array("text" => $lang['msge_activation'], "info" => sprintf($lang['msgi_activation'], admin_url)));
+			//print "ALREADY";
+			msg(["text" => $lang['msge_activation'], "info" => $lang['msgi_activation']]);
 		}
 	} else {
 		// User not found
@@ -53,7 +56,6 @@ function coreActivateUser() {
 }
 
 function coreRegisterUser() {
-
 	global $ip, $lang, $config, $AUTH_METHOD, $SYSTEM_FLAGS, $userROW, $PFILTERS, $mysql;
 
 	$lang = LoadLang('registration', 'site');
@@ -76,13 +78,13 @@ function coreRegisterUser() {
 	if (!$_REQUEST['type'] && $config['users_selfregister']) {
 		// Receiving parameter list during registration
 		$auth = $AUTH_METHOD[$config['auth_module']];
-		$params = $auth->get_reg_params();
+		$params = $auth->getRegParams();
 		generate_reg_page($params);
 	} else if ($_REQUEST['type'] == "doregister" && $config['users_selfregister']) {
 		// Receiving parameter list during registration
 		$auth = $AUTH_METHOD[$config['auth_module']];
-		$params = $auth->get_reg_params();
-		$values = array();
+		$params = $auth->getRegParams();
+		$values = [];
 
 		foreach ($params as $param) {
 			$values[$param['name']] = $_POST[$param['name']];
@@ -136,34 +138,33 @@ function coreRegisterUser() {
 }
 
 // Registration page generation
-function generate_reg_page($params, $values = array(), $msg = '') {
+function generate_reg_page($params, $values = [], $msg = '') {
+	global $tpl, $template, $config, $PFILTERS, $twig, $twigLoader, $lang;
 
-	global $tpl, $template, $PHP_SELF, $config, $PFILTERS, $twig, $twigLoader, $lang;
-
-	$tVars = array(
-		'entries' => array(),
-		'flags'   => array(),
-	);
+	$tVars = [
+		'entries' => [],
+		'flags'   => [],
+	];
 
 	if ($msg) {
-		msg(array("text" => $msg));
+		msg(["text" => $msg]);
 	}
 
 	// prepare variable list
 	foreach ($params as $param) {
-		$tRow = array(
+		$tRow = [
 			'name'       => $param['name'],
 			'title'      => $param['title'],
 			'descr'      => $param['descr'],
 			'error'      => '',
 			'input'      => '',
-			'flags'      => array(),
+			'flags'      => [],
 			'type'       => $param['type'],
 			'html_flags' => $param['html_flags'],
 			'value'      => $param['value'],
 			'values'     => $param['values'],
 			'manual'     => $param['manual'],
-		);
+		];
 
 		if (isset($param['id']) && $param['id'])
 			$tRow['id'] = $param['id'];
@@ -215,39 +216,39 @@ function generate_reg_page($params, $values = array(), $msg = '') {
 	}
 
 	$tVars['form_action'] = checkLinkAvailable('core', 'registration') ?
-		generateLink('core', 'registration', array()) :
-		generateLink('core', 'plugin', array('plugin' => 'core', 'handler' => 'registration'));
+		generateLink('core', 'registration', []) :
+		generateLink('core', 'plugin', ['plugin' => 'core', 'handler' => 'registration']);
 
 	// Prepare REGEX conversion table
-	$conversionConfigRegex = array(
+	$conversionConfigRegex = [
 		"#\[captcha\](.*?)\[/captcha\]#si" => '{% if (flags.hasCaptcha) %}$1{% endif %}',
 		"#{entries}#si"                    => '{% for entry in entries %}{% include "registration.entries.tpl" %}{% endfor %}',
-	);
+	];
 
-	$conversionConfig = array(
+	$conversionConfig = [
 		'{form_action}' => '{{ form_action }}',
-	);
+	];
 
-	$conversionConfigEntries = array(
+	$conversionConfigEntries = [
 		'{name}'  => '{{ entry.name }}',
 		'{title}' => '{{ entry.title }}',
 		'{descr}' => '{{ entry.descr }}',
 		'{error}' => '{{ entry.error }}',
 		'{input}' => '{{ entry.input }}',
-	);
+	];
 
 	$twigLoader->setConversion('registration.tpl', $conversionConfig, $conversionConfigRegex);
 	$twigLoader->setConversion('registration.entries.tpl', $conversionConfigEntries);
 	$xt = $twig->loadTemplate('registration.tpl');
 	$template['vars']['mainblock'] .= $xt->render($tVars);
-
 }
 
 function coreRestorePassword() {
-
-	global $lang, $userROW, $config, $AUTH_METHOD, $SYSTEM_FLAGS, $mysql, $CurrentHandler;
+	global $lang, $userROW, $config, $AUTH_METHOD, $SYSTEM_FLAGS, $CurrentHandler;
 
 	$lang = LoadLang('lostpassword', 'site');
+    LoadPluginLang('auth_basic', 'auth', '', 'auth');
+
 	$SYSTEM_FLAGS['info']['title']['group'] = $lang['loc_lostpass'];
 
 	if (is_array($userROW)) {
@@ -259,32 +260,56 @@ function coreRestorePassword() {
 	if (($CurrentHandler['pluginName'] == 'core') &&
 		($CurrentHandler['handlerName'] == 'lostpassword')
 	) {
-		$userid = isset($CurrentHandler['params']['userid']) ? $CurrentHandler['params']['userid'] : $_REQUEST['userid'];
+		//$userid = isset($CurrentHandler['params']['userid']) ? $CurrentHandler['params']['userid'] : $_REQUEST['userid'];
 		$code = isset($CurrentHandler['params']['code']) ? $CurrentHandler['params']['code'] : $_REQUEST['code'];
 	} else {
-		$userid = $_REQUEST['userid'];
+		//$userid = $_REQUEST['userid'];
 		$code = $_REQUEST['code'];
 	}
 
 	// Confirmation
-	if ($userid && $code) {
+	if ($code && $_REQUEST['type'] != 'setnewpass') {
 		$auth = $AUTH_METHOD[$config['auth_module']];
 		$msg = '';
 
-		if ($auth->confirm_restorepw($msg, $userid, $code)) {
-			// OK
-			msg(array("text" => $msg));
+		if ($auth->checkResetCode($msg, $code)) {
+			// OK, code exist
+            generateSetNewPassPage($code);
+
+			//msg(["text" => $msg]);
 		} else {
 			// Fail
-			msg(array("type" => "error", "text" => $msg));
+			msg(["type" => "error", "text" => $msg]);
 		}
-	} else if ($_REQUEST['type'] == 'send') {
+	} elseif ($_REQUEST['type'] == 'setnewpass') {
+        $auth = $AUTH_METHOD[$config['auth_module']];
+        $msg = '';
+
+        $password = ($_REQUEST['password']) ? trim($_REQUEST['password']) : null;
+        $password2 = ($_REQUEST['password2']) ? trim($_REQUEST['password2']) : null;
+        $resetCode = ($_REQUEST['resetcode']) ? trim($_REQUEST['resetcode']) : null;
+
+        if($auth->validatePassword($msg, $password, $password2, true) == false){
+            msg(["type" => "error", "text" => $msg]);
+            generateSetNewPassPage($resetCode);
+            return;
+        }
+
+        if ($auth->setNewPasswordAfterReset($msg, $resetCode, $password)) {
+            // OK
+            msg(["text" => 'Новый пароль успешно установлен!']);
+        } else {
+            // Fail
+            msg(["type" => "error", "text" => $msg]);
+        }
+    }
+    elseif ($_REQUEST['type'] == 'send') {
 		// PROCESSING REQUEST
 
 		// Receiving parameter list during password recovery
 		$auth = $AUTH_METHOD[$config['auth_module']];
-		$params = $auth->get_restorepw_params();
-		$values = array();
+		$params = $auth->getRestorePasswordParams();
+		$values = [];
 
 		foreach ($params as $param) {
 			$values[$param['name']] = $_POST[$param['name']];
@@ -302,7 +327,7 @@ function coreRestorePassword() {
 		}
 
 		// Trying password recovery
-		if (($msg == '') && $auth->restorepw($params, $values, $msg)) {
+		if (($msg == '') && $auth->restorePassword($params, $values, $msg)) {
 			// OK
 			// ...
 		} else {
@@ -314,7 +339,7 @@ function coreRestorePassword() {
 
 		// Receiving parameter list during password recovery
 		$auth = $AUTH_METHOD[$config['auth_module']];
-		$params = $auth->get_restorepw_params();
+		$params = $auth->getRestorePasswordParams();
 		if (!is_array($params)) {
 			msg(array("type" => "error", "text" => $lang['msge_lpforbid']));
 
@@ -327,24 +352,24 @@ function coreRestorePassword() {
 
 // Registration page generation
 function generate_restorepw_page($params, $values = array(), $msg = '') {
+	global $tpl, $template, $config, $lang;
 
-	global $tpl, $template, $PHP_SELF, $config, $lang;
 	$tpl->template('lostpassword.entries', tpl_site);
 	$tpl->template('lostpassword.entry-full', tpl_site);
 
 	if ($msg) {
-		msg(array("text" => $msg));
+		msg(["text" => $msg]);
 	}
 
 	foreach ($params as $param) {
-		$tvars['vars'] = array(
+		$tvars['vars'] = [
 			'name'  => $param['name'],
 			'title' => $param['title'],
 			'descr' => $param['descr'],
 			'error' => '',
 			'input' => '',
 			'text'  => $param['text']
-		);
+		];
 
 		if ($param['error']) {
 			$tvars['vars']['error'] = str_replace('%error%', $param['error'], $lang['param_error']);
@@ -388,9 +413,19 @@ function generate_restorepw_page($params, $values = array(), $msg = '') {
 		generateLink('core', 'lostpassword', array()) :
 		generateLink('core', 'plugin', array('plugin' => 'core', 'handler' => 'lostpassword'));
 	$tvars['vars']['entries'] = $entries;
+
 	$tpl->template('lostpassword', tpl_site);
 	$tpl->vars('lostpassword', $tvars);
 	$template['vars']['mainblock'] .= $tpl->show('lostpassword');
+}
+
+// Reset password page generation
+function generateSetNewPassPage($resetCode) {
+    global $tpl, $template;
+
+    $tpl->template('lostpassword.resetpass', tpl_site);
+    $tpl->vars('lostpassword.resetpass', ['vars' => ['resetCode' => $resetCode]]);
+    $template['vars']['mainblock'] .= $tpl->show('lostpassword.resetpass');
 }
 
 //
@@ -398,7 +433,6 @@ function generate_restorepw_page($params, $values = array(), $msg = '') {
 // This is a workaround for 2-stage AUTH functions (like openID)
 // Parameter: user's record [row]
 function coreLoginAction($row = null, $redirect = null) {
-
 	global $auth, $auth_db, $username, $userROW, $is_logged, $is_logged_cookie, $SYSTEM_FLAGS, $HTTP_REFERER;
 	global $tpl, $template, $config, $lang, $ip;
 
@@ -408,7 +442,7 @@ function coreLoginAction($row = null, $redirect = null) {
 	// Try to auth && check for bans
 	if (is_array($row) && (!($ban_mode = checkBanned($ip, 'users', 'auth', $row, $row['name'])))) {
 
-		$auth_db->save_auth($row);
+		$auth_db->saveAuth($row);
 		$username = $row['name'];
 		$userROW = $row;
 		$is_logged_cookie = true;
@@ -485,15 +519,14 @@ function coreLogin() {
 	}
 
 	// Try to auth
-	$row = $auth->login();
+	$row = $auth->login($_REQUEST['username'], $_REQUEST['password']);
 	coreLoginAction($row, $redirect);
 }
 
 function coreLogout() {
-
 	global $auth_db, $userROW, $username, $is_logged, $HTTP_REFERER, $config;
 
-	$auth_db->drop_auth();
+	$auth_db->dropAuth();
 	@header("Location: " . (preg_match('#^http\:\/\/#', $HTTP_REFERER, $tmp) ? $HTTP_REFERER : $config['home_url']));
 
 	unset($userROW);

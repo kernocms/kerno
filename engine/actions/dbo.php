@@ -8,7 +8,7 @@
 //
 
 // Protect against hack attempts
-if (!defined('NGCMS')) die ('HAL');
+if (!defined('KERNO')) die ('HAL');
 
 // Load language
 LoadLang('dbo', 'admin', 'dbo');
@@ -116,7 +116,7 @@ function systemDboModify() {
 		$db->createCursor("truncate table " . prefix . "_news_map");
 		
 		if (strlen($nmap))
-			$db->exec("insert into " . prefix . "_news_map (newsID, categoryID, dt) values " . substr($nmap, 0, -1));
+			$db->exec("insert into " . prefix . "_news_map (news_id, category_id, dt) values " . substr($nmap, 0, -1));
 		
 		// Update category news counters
 		foreach ($catz as $key) {

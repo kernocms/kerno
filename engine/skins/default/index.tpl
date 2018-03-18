@@ -45,7 +45,7 @@
 <div class="clear_ftr"></div>
 <div id="footpanel">
     <ul id="mainpanel">
-        <li><a href="http://ngcms.ru" target="_blank" class="home">© 2008-{{ year }} <strong>Next Generation</strong> CMS <small>{{ lang['ngcms_site'] }}</small></a></li>
+        <li><a href="http://www.kerno.ru" target="_blank" class="home">© 2017-{{ year }} <strong>Kerno CMS</strong><small>{{ lang['ngcms_site'] }}</small></a></li>
         <li><a href="{{ php_self }}?mod=news&amp;action=add" class="add_news">{{ lang['addnews_t'] }}<small>{{ lang['addnews_t'] }}</small></a></li>
         <li><a href="{{ php_self }}?mod=news" class="add_edit">{{ lang['editnews'] }}<small>{{ lang['editnews'] }}</small></a></li>
         <li><a href="{{ php_self }}?mod=images" class="add_images">{{ lang['images'] }}<small>{{ lang['images'] }}</small></a></li>
@@ -55,7 +55,7 @@
         <li><a href="{{ php_self }}?mod=users" class="add_user">{{ lang['users'] }}<small>{{ lang['users'] }}</small></a></li>
         <li><a href="{{ php_self }}?mod=configuration" class="add_system_option">{{ lang['options_t'] }}<small>{{ lang['options_t'] }}</small></a></li>
         <li id="alertpanel"><a href="http://rocketvip.ru/" target="_blank" class="rocket">{{ lang['design'] }}- RocketBoy</a></li>
-        <li id="chatpanel"><a href="http://ngcms.ru/forum/" target="_blank" class="chat">{{ lang['forum'] }}</a></li>
+        <li id="chatpanel"><a href="http://www.kerno.ru/forum" target="_blank" class="chat">{{ lang['forum'] }}</a></li>
 
     </ul>
 </div>

@@ -10,7 +10,7 @@
 */
 
 // Protect against hack attempts
-if (!defined('NGCMS')) die ('HAL');
+if (!defined('KERNO')) die ('HAL');
 
 // automatic config screen generator
 
@@ -205,8 +205,7 @@ function get_mysql_field_type($table, $field) {
 
 // Database update during install
 function fixdb_plugin_install($module, $params, $mode = 'install', $silent = false, &$is_error) {
-
-	global $lang, $tpl, $mysql, $main_admin, $PHP_SELF;
+	global $lang, $tpl, $mysql, $main_admin, $PHP_SELF, $config;
 
 	// Load config
 	plugins_load_config();
@@ -233,7 +232,7 @@ function fixdb_plugin_install($module, $params, $mode = 'install', $silent = fal
 			break;
 		}
 
-		$chgTableName = (($table['table'] == 'users') ? uprefix : prefix) . "_" . $table['table'];
+		$chgTableName = (($table['table'] == 'users') ? $config['uprefix'] : $config['prefix']) . "_" . $table['table'];
 
 		if (($table['action'] != 'create') &&
 			($table['action'] != 'cmodify') &&

@@ -8,7 +8,7 @@
 //
 
 // Protect against hack attempts
-if (!defined('NGCMS')) die ('HAL');
+if (!defined('KERNO')) die ('HAL');
 
 // ==============================================================
 //  Module functions
@@ -113,8 +113,9 @@ function admGeneratePluginList() {
 }
 
 function repoSync() {
-
 	global $extras, $config;
+
+    return [];
 	if (($vms = cacheRetrieveFile('plugversion.dat', 86400)) === false) {
 		// Prepare request to repository
 		$paramList = array('_ver=' . urlencode(engineVersion), 'UUID=' . $config['UUID']);
@@ -122,14 +123,14 @@ function repoSync() {
 			$paramList [] = urlencode($extra['id']) . "=" . urlencode($extra['version']);
 
 		$req = new http_get();
-		$vms = $req->get('http://ngcms.ru/components/update/?action=info&' . join('&', $paramList), 3, 1);
+		//$vms = $req->get('http://ngcms.ru/components/update/?action=info&' . join('&', $paramList), 3, 1);
 
 		// Save into cache
 		cacheStoreFile('plugversion.dat', $vms);
 	}
 	$rps = unserialize($vms);
 
-	return is_array($rps) ? $rps : array();
+	return is_array($rps) ? $rps : [];
 }
 
 // ==============================================================
