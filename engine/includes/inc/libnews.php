@@ -571,10 +571,11 @@ function news_showlist($filterConditions = array(), $paginationParams = array(),
 		$pages_count = 1;
 	} else {
 		if (isset($callingParams['paginationCategoryID']) && ($callingParams['paginationCategoryID'] > 0)) {
-			$query['count'] = 'SELECT count(*) FROM ' . prefix . '_news_map where category_id = ' . db_squote($callingParams['paginationCategoryID']);
+			$query['count'] = 'SELECT count(*) FROM ' . prefix . '_news_map WHERE category_id = ' . db_squote($callingParams['paginationCategoryID']);
 		} else {
-			$query['count'] = "SELECT count(*) as count FROM " . prefix . "_news WHERE " . $query['filter'];
+			$query['count'] = "SELECT count(*) AS count FROM " . prefix . "_news WHERE " . $query['filter'];
 		}
+
 		$newsCount = $mysql->result($query['count']);
 		$pages_count = ceil($newsCount / $showNumber);
 	}

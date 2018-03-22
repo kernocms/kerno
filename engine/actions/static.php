@@ -1,22 +1,23 @@
 <?php
 
-//
-// Copyright (C) 2006-2014 Next Generation CMS (http://ngcms.ru/)
-// Name: static.php
-// Description: Manage static pages
-// Author: Vitaly Ponomarev
-//
+/*
+ * Copyright (C) 2006-2018 Kerno CMS
+ *
+ * Name: static.php
+ * Description: Manage static pages
+ *
+ * @author Vitaly Ponomarev
+ * @author Dmitry Ryzhkov
+ *
+*/
 
 // Protect against hack attempts
 if (!defined('KERNO')) die ('HAL');
 
 $lang = LoadLang('static', 'admin');
 
-//
 // Show list of static pages
-//
 function listStatic() {
-
 	global $mysql, $mod, $userROW, $lang, $config, $twig, $PHP_SELF;
 
 	// Check for permissions
@@ -44,33 +45,33 @@ function listStatic() {
 	$pageNo = intval(getIsSet($_REQUEST['page']));
 	if ($pageNo < 1) $pageNo = 1;
 
-	$query = array();
+	$query = [];
 	$query['sql'] = "select * from " . prefix . "_static order by title limit " . (($pageNo - 1) * $per_page) . ", " . $per_page;
 	$query['count'] = "select count(*) as cnt from " . prefix . "_static ";
 
 	$nCount = 0;
-	$tEntries = array();
+	$tEntries = [];
 	foreach ($mysql->select($query['sql']) as $row) {
 		$nCount++;
 
-		$tEntry = array(
+		$tEntry = [
 			'home'     => home,
 			'id'       => $row['id'],
 			'alt_name' => $row['alt_name'],
 			'template' => ($row['template'] == '') ? '--' : $row['template'],
-			'date'     => ($row['postdate'] > 0) ? strftime('%d.%m.%Y %H:%M', $row['postdate']) : '',
-		);
+			'date'     => ($row['postdate']) ? LangDatetime('d.m.Y H:i', $row['postdate']) : '',
+		];
 
-		if (strlen($row['title']) > 70) {
-			$row['title'] = substr($row['title'], 0, 70) . " ...";
+		if (mb_strlen($row['title']) > 70) {
+			$row['title'] = mb_substr($row['title'], 0, 70) . " ...";
 		}
 
 		$link = checkLinkAvailable('static', '') ?
-			generateLink('static', '', array('altname' => $row['alt_name'], 'id' => $row['id']), array(), false, true) :
-			generateLink('core', 'plugin', array('plugin' => 'static'), array('altname' => $row['alt_name'], 'id' => $row['id']), false, true);
+			generateLink('static', '', ['altname' => $row['alt_name'], 'id' => $row['id']], array(), false, true) :
+			generateLink('core', 'plugin', ['plugin' => 'static'], ['altname' => $row['alt_name'], 'id' => $row['id']], false, true);
 
 		$tEntry['url'] = $row['approve'] ? ('<a href="' . $link . '" target="_blank">' . $link . '</a>') : '';
-		$tEntry['title'] = str_replace(array("'", "\""), array("&#039;", "&quot;"), $row['title']);
+		$tEntry['title'] = str_replace(["'", "\""], ["&#039;", "&quot;"], $row['title']);
 		$tEntry['status'] = ($row['approve']) ? '<img src="' . skins_url . '/images/yes.png" alt="' . $lang['approved'] . '" />' : '<img src="' . skins_url . '/images/no.png" alt="' . $lang['unapproved'] . '" />';
 
 		$tEntries [] = $tEntry;
@@ -137,9 +138,8 @@ function massStaticModify($setValue, $langParam, $tag = '') {
 	msg(array("text" => $lang[$langParam]));
 }
 
-//
+
 // Mass static pages delete
-//
 function massStaticDelete() {
 
 	global $mysql, $lang, $PFILTERS;
@@ -206,7 +206,6 @@ function staticTemplateList() {
 //	0 - autodetect
 //  x - exact static ID
 function addEditStaticForm($operationMode = 1, $sID = 0) {
-
 	global $lang, $parse, $mysql, $config, $twig, $mod, $PFILTERS, $tvars, $userROW, $PHP_SELF;
 	global $title, $contentshort, $contentfull, $alt_name, $id, $c_day, $c_month, $c_year, $c_hour, $c_minute;
 
@@ -223,8 +222,8 @@ function addEditStaticForm($operationMode = 1, $sID = 0) {
 
 	// Init `$editMode` variable
 	$editMode = 0;
-	$row = array();
-	$origRow = array();
+	$row = [];
+	$origRow = [];
 
 	$requestID = ($sID > 0) ? $sID : ((isset($_REQUEST['id']) && $_REQUEST['id']) ? $_REQUEST['id'] : 0);
 
@@ -247,10 +246,10 @@ function addEditStaticForm($operationMode = 1, $sID = 0) {
 
 	// Populate `repeat previous attempt` data
 	if (($operationMode == 2) || ($operationMode == 4)) {
-		foreach (array('title', 'content', 'alt_name', 'template', 'description', 'keywords') as $k) {
-			if (isset($_REQUEST[$k]))
-				$row[$k] = $_REQUEST[$k];
+		foreach (['title', 'content', 'alt_name', 'template', 'description', 'keywords'] as $k) {
+			if (isset($_REQUEST[$k])) $row[$k] = $_REQUEST[$k];
 		}
+
 		$row['approve'] = (isset($_REQUEST['flag_published']) && $_REQUEST['flag_published']) ? 1 : 0;
 		$row['flags'] = ((isset($_REQUEST['flag_raw']) && $_REQUEST['flag_raw']) ? 1 : 0) + ((isset($_REQUEST['flag_html']) && $_REQUEST['flag_html']) ? 2 : 0) + ((isset($_REQUEST['flag_template_main']) && $_REQUEST['flag_template_main']) ? 4 : 0);
 	}
@@ -277,7 +276,7 @@ function addEditStaticForm($operationMode = 1, $sID = 0) {
 		)
 	);
 	// Fill data entry
-	$tVars['data'] = array(
+	$tVars['data'] = [
 		'id'                 => $row['id'],
 		'title'              => secure_html(getIsSet($row['title'])),
 		'content'            => secure_html(getIsSet($row['content'])),
@@ -285,12 +284,12 @@ function addEditStaticForm($operationMode = 1, $sID = 0) {
 		'template'           => getIsSet($row['template']),
 		'description'        => getIsSet($row['description']),
 		'keywords'           => getIsSet($row['keywords']),
-		'cdate'              => !empty($row['postdate']) ? date('d.m.Y H:i', $row['postdate']) : "",
+		'cdate'              => !empty($row['postdate']) ? LangDatetime('d.m.Y H:i', $row['postdate']) : "",
 		'flag_published'     => getIsSet($row['approve']),
 		'flag_raw'           => (getIsSet($row['flags']) % 2) ? 1 : 0,
 		'flag_html'          => ((getIsSet($row['flags']) / 2) % 2) ? 1 : 0,
 		'flag_template_main' => ((getIsSet($row['flags']) / 4) % 2) ? 1 : 0,
-	);
+	];
 
 	if ($editMode && ($origRow['approve'])) {
 		$tVars['data']['url'] = (checkLinkAvailable('static', '') ?
@@ -312,15 +311,11 @@ function addEditStaticForm($operationMode = 1, $sID = 0) {
 
 	$xt = $twig->loadTemplate('skins/default/tpl/static/edit.tpl');
 	return $xt->render($tVars);
-
-	return 1;
+	//return 1;
 }
 
-//
 // Add static page
-//
 function addStatic() {
-
 	global $mysql, $parse, $PFILTERS, $lang, $config, $userROW, $PHP_SELF, $tvars;
 
 	$perm = checkPermission(array('plugin' => '#admin', 'item' => 'static'), null, array('modify', 'view', 'template', 'template.main', 'html', 'publish', 'unpublish'));
@@ -352,9 +347,9 @@ function addStatic() {
 	$content = $_REQUEST['content'];
 	$content = str_replace("\r\n", "\n", $content);
 
-	$alt_name = strtolower($parse->translit(trim($_REQUEST['alt_name']), 1, 1));
+	$alt_name = mb_strtolower($parse->translit(trim($_REQUEST['alt_name']), 1, 1));
 
-	if ((!strlen(trim($title))) || (!strlen(trim($content)))) {
+	if ((!mb_strlen(trim($title))) || (!mb_strlen(trim($content)))) {
 		msgSticker(array(array($lang['msge_fields'], 'title', 1), array($lang['msgi_fields'], '', 1)), 'error', 1);
 
 		return 0;
@@ -369,14 +364,17 @@ function addStatic() {
 
 			return 0;
 		}
+
 		$SQL['alt_name'] = $alt_name;
 	} else {
 		// Generate uniq alt_name if no alt_name specified
 		$alt_name = strtolower($parse->translit(trim($title), 1));
+
 		$i = '';
 		while (is_array($mysql->record("select id from " . prefix . "_static where alt_name = " . db_squote($alt_name . $i) . " limit 1"))) {
 			$i++;
 		}
+
 		$SQL['alt_name'] = $alt_name . $i;
 	}
 
@@ -408,7 +406,7 @@ function addStatic() {
 		$vparams[] = db_squote($v);
 	}
 
-	$mysql->query("insert into " . prefix . "_static (postdate, " . implode(",", $vnames) . ") values (unix_timestamp(now()), " . implode(",", $vparams) . ")");
+	$mysql->query("insert into " . prefix . "_static (postdate, " . implode(",", $vnames) . ") values (" . db_squote(getDatetimeUTC()) . ", " . implode(",", $vparams) . ")");
 	$id = $mysql->result("SELECT LAST_INSERT_ID() as id");
 
 	$link = (checkLinkAvailable('static', '') ?
@@ -427,7 +425,6 @@ function addStatic() {
 // Edit static page
 //
 function editStatic() {
-
 	global $mysql, $parse, $PFILTERS, $lang, $config, $userROW;
 
 	$perm = checkPermission(array('plugin' => '#admin', 'item' => 'static'), null, array('modify', 'view', 'template', 'template.main', 'html', 'publish', 'unpublish'));
@@ -486,7 +483,7 @@ function editStatic() {
 	$SQL['approve'] = intval($_REQUEST['flag_published']);
 	if (isset($_POST['set_postdate']) && $_POST['set_postdate']) {
 		if (preg_match('#^(\d+)\.(\d+)\.(\d+) +(\d+)\:(\d+)$#', $_REQUEST['cdate'], $m)) {
-			$SQL['postdate'] = mktime($m[4], $m[5], 0, $m[2], $m[1], $m[3]) + ($config['date_adjust'] * 60);
+            $SQL['postdate'] = getDatetimeUTC(mktime($m[4], $m[5], 0, $m[2], $m[1], $m[3]));
 		}
 	}
 

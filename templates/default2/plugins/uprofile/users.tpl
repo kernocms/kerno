@@ -39,23 +39,7 @@
 						</tr>
 						<tr>
 							<td style="padding: 5px;"><b>{{ lang.uprofile['all_comments'] }}:</b></td>
-							<td style="padding: 5px;">{{ user.com }}</td>
-						</tr>
-						<tr>
-							<td style="padding: 5px;"><b>{{ lang.uprofile['site'] }}:</b></td>
-							<td style="padding: 5px;">{{ user.site }}</td>
-						</tr>
-						<tr>
-							<td style="padding: 5px;"><b>{{ lang.uprofile['icq'] }}:</b></td>
-							<td style="padding: 5px;">{{ user.icq }}</td>
-						</tr>
-						<tr>
-							<td style="padding: 5px;"><b>{{ lang.uprofile['from'] }}:</b></td>
-							<td style="padding: 5px;">{{ user.from }}</td>
-						</tr>
-						<tr>
-							<td style="padding: 5px;"><b>{{ lang.uprofile['about'] }}:</b></td>
-							<td style="padding: 5px;">{{ user.info }}</td>
+							<td style="padding: 5px;">{{ user.comments }}</td>
 						</tr>
 					</table>
 				</td>

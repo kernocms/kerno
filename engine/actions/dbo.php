@@ -1,11 +1,15 @@
 <?php
 
-//
-// Copyright (C) 2006-2017 Next Generation CMS (http://ngcms.ru/)
-// Name: dbo.php
-// Description: Database managment
-// Author: Vitaly Ponomarev, Alexey Zinchenko
-//
+/*
+ * Copyright (C) 2006-2018 Kerno CMS
+ *
+ * Name: dbo.php
+ * Description: Database management
+ *
+ * @author Vitaly Ponomarev
+ * @author Alexey Zinchenko
+ *
+*/
 
 // Protect against hack attempts
 if (!defined('KERNO')) die ('HAL');
@@ -84,39 +88,44 @@ function systemDboModify() {
 	// Update message counters
 	if ($_REQUEST['cat_recount']) {
 		// Обновляем счётчики в категориях
-		$ccount = array();
+		$ccount = [];
 		$nmap = '';
 		$start = 0;
+
 		do {
-			$cursor = $db->createCursor("select id, catid, postdate, editdate from " . prefix . "_news where approve=1 limit ".$start.", 10000");
+			$cursor = $db->createCursor("SELECT id, catid, postdate, editdate FROM" . prefix . "_news WHERE approve=1 LIMIT ".$start.", 10000");
 			$qRowCount = 0;
 			$start += 10000;
+
 			while ($row = $db->fetchCursor($cursor)) {
 				$qRowCount++;
 				$ncats = 0;
+
 				foreach (explode(",", $row['catid']) as $key) {
 					if (!$key) {
 						continue;
 					}
+
 					$ncats++;
-					$nmap .= '(' . $row['id'] . ',' . $key . ',from_unixtime(' . (($row['editdate'] > $row['postdate']) ? $row['editdate'] : $row['postdate']) . ')),';
+					$nmap .= '(' . $row['id'] . ',' . $key . ',' . (($row['editdate'] > $row['postdate']) ? db_squote($row['editdate']) : db_squote($row['postdate'])) . '),';
 					if (!$ccount[$key]) {
 						$ccount[$key] = 1;
 					} else {
 						$ccount[$key] += 1;
 					}
 				}
+
 				if (!$ncats) {
-					$nmap .= '(' . $row['id'] . ',0,from_unixtime(' . (($row['editdate'] > $row['postdate']) ? $row['editdate'] : $row['postdate']) . ')),';
+					$nmap .= '(' . $row['id'] . ',0,' . (($row['editdate'] > $row['postdate']) ? db_squote($row['editdate']) : db_squote($row['postdate'])) . '),';
 				}
 			}
 		} while($qRowCount > 0);
 		
 		// Update table `news_map`
-		$db->createCursor("truncate table " . prefix . "_news_map");
+		$db->createCursor("TRUNCATE TABLE " . prefix . "_news_map");
 		
-		if (strlen($nmap))
-			$db->exec("insert into " . prefix . "_news_map (news_id, category_id, dt) values " . substr($nmap, 0, -1));
+		if (mb_strlen($nmap))
+			$db->exec("INSERT INTO " . prefix . "_news_map (news_id, category_id, dt) VALUES " . mb_substr($nmap, 0, -1));
 		
 		// Update category news counters
 		foreach ($catz as $key) {

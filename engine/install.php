@@ -56,6 +56,8 @@ NGInstall(function() {
 	$sx->set('errorHandler', new NGErrorHandler());
 });
 
+$defaultTZ = ['America/Los_Angeles', 'America/New_York', 'Europe/London', 'Europe/Berlin', 'Europe/Kiev', 'Europe/Warsaw', 'Europe/Bucharest', 'Europe/Sofia', 'Europe/Moscow', 'Europe/Athens', 'Europe/Kaliningrad', 'Europe/Minsk', 'Europe/Istanbul', 'Europe/Samara', 'Asia/Yekaterinburg', 'Asia/Tashkent', 'Asia/Aqtobe', 'Asia/Omsk', 'Asia/Almaty', 'Asia/Tomsk', 'Asia/Irkutsk', 'Asia/Chita', 'Asia/Tokyo ', 'Asia/Vladivostok', 'Asia/Magadan', 'Australia/Sydney', 'Asia/Kamchatka'];
+
 multi_multisites();
 @define('confroot', root . 'conf/' . ($multiDomainName && $multimaster && ($multiDomainName != $multimaster) ? 'multi/' . $multiDomainName . '/' : ''));
 
@@ -397,9 +399,10 @@ function doConfig_perm() {
 	// Check file permissions
 	$permList = [
 		'.htaccess', 'uploads/', 'uploads/avatars/', 'uploads/files/',
-		'uploads/images/', 'uploads/photos/', 'uploads/dsn/', $adminDirName . '/backups/',
+		'uploads/images/', 'uploads/dsn/', $adminDirName . '/backups/',
 		$adminDirName . '/cache/', $adminDirName . '/conf/'
 	];
+
 	foreach ($permList as $dir) {
 		$perms = (($x = @fileperms($installDir . '/' . $dir)) === false) ? 'n/a' : (decoct($x) % 1000);
 		$chmod .= '<tr><td>./' . $dir . '</td><td>' . $perms . '</td><td>' . (is_writable($installDir . '/' . $dir) ? $lang['perm.access.on'] : '<font color="red"><b>' . $lang['perm.access.off'] . '</b></font>') . '</td></tr>';
@@ -640,7 +643,8 @@ function doConfig_templates() {
 
 function doConfig_common() {
 
-	global $tvars, $tpl, $templateDir, $installDir, $adminDirName, $SQL_VERSION, $homeURL, $lang;
+	global $tvars, $tpl, $templateDir, $installDir, $adminDirName, $SQL_VERSION, $homeURL, $lang, $defaultTZ;
+
 	$tvars['vars']['menu_common'] = ' class="hover"';
 	printHeader();
 
@@ -660,6 +664,10 @@ function doConfig_common() {
 		$tvars['vars'][$k] = isset($_POST[$k]) ? htmlspecialchars($_POST[$k], ENT_COMPAT | ENT_HTML401, 'UTF-8') : '';
 	}
 
+    @include_once root . 'includes/inc/functions.inc.php';
+
+    $tvars['vars']['timezone_list'] = installSelectTZ(getSelectListTimezone($defaultTZ));
+    $tvars['vars']['utc_time'] = gmdate("d.m.Y H:i");
 	$tvars['vars']['autodata_checked'] = (isset($_POST['autodata']) && ($_POST['autodata'] == '1')) ? ' checked="checked"' : '';
 
 	// Выводим форму проверки
@@ -670,12 +678,12 @@ function doConfig_common() {
 
 // Генерация конфигурационного файла
 function doInstall() {
-
-	global $tvars, $tpl, $templateDir, $installDir, $adminDirName, $pluginInstallList, $lang, $currentLanguage;
+	global $tvars, $tpl, $templateDir, $installDir, $adminDirName, $pluginInstallList, $lang, $currentLanguage, $defaultTZ;
 	$tvars['vars']['menu_install'] = ' class="hover"';
 	printHeader();
 
 	$myparams = ['action', 'stage'];
+
 	// Show form
 	$hinput = [];
 	foreach ($_POST as $k => $v)
@@ -946,12 +954,10 @@ function doInstall() {
 			'files_dir'           => $installDir . '/uploads/files/',
 			'attach_dir'          => $installDir . '/uploads/dsn/',
 			'avatars_dir'         => $installDir . '/uploads/avatars/',
-			'photos_dir'          => $installDir . '/uploads/photos/',
 			'images_url'          => $_POST['home_url'] . '/uploads/images',
 			'files_url'           => $_POST['home_url'] . '/uploads/files',
 			'attach_url'          => $_POST['home_url'] . '/uploads/dsn',
 			'avatars_url'         => $_POST['home_url'] . '/uploads/avatars',
-			'photos_url'          => $_POST['home_url'] . '/uploads/photos',
 			'home_title'          => $_POST['home_title'],
 			'admin_mail'          => $_POST['admin_email'],
 			'lock'                => '0',
@@ -962,6 +968,8 @@ function doInstall() {
 			'skin'                => 'default',
 			'theme'               => $_POST['template'],
 			'default_lang'        => $currentLanguage,
+            'list_timezone'       => (is_array($defaultTZ) && !empty($defaultTZ)) ? implode(',', $defaultTZ) : '',
+            'timezone'            => (isset($_POST['timezone']) && $_POST['timezone']) ? $_POST['timezone'] : 'Europe/Moscow',
 			'auto_backup'         => '0',
 			'auto_backup_time'    => '48',
 			'use_gzip'            => '0',
@@ -973,7 +981,6 @@ function doInstall() {
 			'category_link'       => '1',
 			'add_onsite'          => '1',
 			'add_onsite_guests'   => '0',
-			'date_adjust'         => '0',
 			'timestamp_active'    => 'j Q Y',
 			'timestamp_updated'   => 'j.m.Y - H:i',
 			'smilies'             => 'smile, biggrin, tongue, wink, cool, angry, sad, cry, upset, tired, blush, surprise, thinking, shhh, kiss, crazy, undecide, confused, down, up',
@@ -981,6 +988,7 @@ function doInstall() {
 			'use_smilies'         => '1',
 			'use_bbcodes'         => '1',
 			'use_htmlformatter'   => '1',
+            'save_news_content_mode' => 'raw',
 			'forbid_comments'     => '0',
 			'reverse_comments'    => '0',
 			'auto_wrap'           => '50',
@@ -991,10 +999,6 @@ function doInstall() {
 			'use_avatars'         => '1',
 			'avatar_wh'           => '65',
 			'avatar_max_size'     => '16',
-			'use_photos'          => '1',
-			'photos_max_size'     => '256',
-			'photos_thumb_size_x' => '80',
-			'photos_thumb_size_y' => '80',
 			'images_ext'          => 'gif, jpg, jpeg, png',
 			'images_max_size'     => '512',
 			'thumb_size_x'        => '150',

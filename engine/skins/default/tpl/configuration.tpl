@@ -364,7 +364,7 @@
 				</tr>
 				<tr>
 					<td class="contentEntry1">{{ lang['home_title'] }}<br/>
-						<small>{{ lang['example'] }} NGcms</small>
+						<small>{{ lang['example'] }} Kerno CMS</small>
 					</td>
 					<td class="contentEntry2" valign="middle">
 						<input type="text" name='save_con[home_title]' value="{{ config['home_title']|escape }}" size="40"/>
@@ -455,16 +455,27 @@
 					</td>
 					<td class="contentEntry2" valign="middle">{{ mkSelectNY({'name' : 'save_con[url_external_target_blank]', 'value' : config['url_external_target_blank'] }) }}</td>
 				</tr>
+                <tr>
+                    <td class="contentEntry1">{{ lang['list_timezone'] }}<br/>
+                        <small>{{ lang['list_timezone#desc'] }}</small>
+                    </td>
+                    <td class="contentEntry2" valign="middle">
+                        <textarea name="save_con[list_timezone]" id="list_timezone" cols="50">{{ config['list_timezone'] }}</textarea>
+                    </td>
+                </tr>
+
 				<tr>
 					<td class="contentEntry1">{{ lang['timezone'] }}<br/>
 						<small>{{ lang['timezone#desc'] }}</small>
 					</td>
 					<td class="contentEntry2" valign="middle">
 						<select name="save_con[timezone]" id="timezone">
-							{% for zone in list['timezoneList'] %}
-								<option value="{{ zone }}" {% if (config['timezone'] == zone) %}selected="selected"{% endif %}>{{ zone }}</option>
+							{% for zone, zoneName in list['timezoneList'] %}
+								<option value="{{ zone }}" {% if (config['timezone'] == zone) %}selected="selected"{% endif %}>{{ zoneName }}</option>
 							{% endfor %}
 						</select>
+                        <br/><br/>
+                        <i>{{ lang['timeutc'] }}</i>: {{ list['UTCtime'] }}
 					</td>
 				</tr>
 				<tr>
@@ -612,14 +623,6 @@
 					<td class="contentEntry2" valign="middle">{{ mkSelectYN({'name' : 'save_con[news_without_content]', 'value' : config['news_without_content'] }) }}</td>
 				</tr>
 				<tr>
-					<td class="contentEntry1">{{ lang['date_adjust'] }}<br/>
-						<small>{{ lang['date_adjust_desc'] }}</small>
-					</td>
-					<td class="contentEntry2" valign="middle">
-						<input type="text" name='save_con[date_adjust]' value='{{ config['date_adjust'] }}' size="6"/>
-					</td>
-				</tr>
-				<tr>
 					<td width="50%" class="contentEntry1">{{ lang['timestamp_active'] }}<br/>
 						<small>{{ lang['date_help'] }}</small>
 					</td>
@@ -675,6 +678,14 @@
 					</td>
 					<td class="contentEntry2" valign="middle">{{ mkSelectYN({'name' : 'save_con[use_htmlformatter]', 'value' : config['use_htmlformatter'] }) }}</td>
 				</tr>
+                <tr>
+                    <td class="contentEntry1">{{ lang['news_save_content_mode'] }}<br/>
+                        <small>{{ lang['news_save_content_mode_desc'] }}</small>
+                    </td>
+                    <td class="contentEntry2" valign="middle">
+                        {{ mkSelect({'name' : 'save_con[save_news_content_mode]', 'value' : config['save_news_content_mode'], 'values' : { 'raw' : lang['news_save_content_rawmode'], 'parsed' : lang['news_save_content_parsedmode'] } }) }}
+                    </td>
+                </tr>
 				<tr>
 					<td class="contentEntry1">{{ lang['default_newsorder'] }}<br/>
 						<small>{{ lang['default_newsorder_desc'] }}</small>
@@ -707,14 +718,6 @@
 						<small>{{ lang['register_type_desc'] }}</small>
 					</td>
 					<td class="contentEntry2" valign="middle">{{ mkSelect({'name' : 'save_con[register_type]', 'value' : config['register_type'], 'values' : { 'quick' : lang['register_extremly'], 'simple' : lang['register_simple'], 'simple_with_notify' : lang['register_activation'], 'manual_with_notify' : lang['register_manual'], 'manual_simple' : lang['register_manual_simple'], 'manual_confirm' : lang['register_manual_confirm']  } }) }}</td>
-				</tr>
-				<tr>
-					<td class="contentEntry1">{{ lang['user_aboutsize'] }}<br/>
-						<small>{{ lang['user_aboutsize_desc'] }}</small>
-					</td>
-					<td class="contentEntry2" valign="middle">
-						<input type="text" name='save_con[user_aboutsize]' value='{{ config['user_aboutsize'] }}' style="width: 40px"/>
-					</td>
 				</tr>
 				<tr>
 					<td colspan="2" class="contentHead">
@@ -764,50 +767,7 @@
 						<input type="text" name='save_con[avatar_max_size]' value='{{ config['avatar_max_size'] }}' style="width: 40px"/>
 					</td>
 				</tr>
-				<tr>
-					<td colspan="2" class="contentHead">
-						<img src="{{ skins_url }}/images/nav.gif" hspace="8" alt=""/>{{ lang['users.photos'] }}</td>
-				</tr>
-				<tr>
-					<td class="contentEntry1">{{ lang['use_photos'] }}<br/>
-						<small>{{ lang['use_photos_desc'] }}</small>
-					</td>
-					<td class="contentEntry2" valign="middle">{{ mkSelectYN({'name' : 'save_con[use_photos]', 'value' : config['use_photos'] }) }}</td>
-				</tr>
-				<tr>
-					<td class="contentEntry1">{{ lang['photos_url'] }}<br/>
-						<small>{{ lang['example'] }} http://server.com/uploads/photos</small>
-					</td>
-					<td class="contentEntry2" valign="middle">
-						<input class="folder" type="text" name='save_con[photos_url]' value='{{ config['photos_url'] }}' size="40"/>
-					</td>
-				</tr>
-				<tr>
-					<td class="contentEntry1">{{ lang['photos_dir'] }}<br/>
-						<small>{{ lang['example'] }} /home/servercom/public_html/uploads/photos/</small>
-					</td>
-					<td class="contentEntry2" valign="middle">
-						<input class="folder" type="text" name='save_con[photos_dir]' value='{{ config['photos_dir'] }}' size="40"/>
-					</td>
-				</tr>
-				<tr>
-					<td class="contentEntry1">{{ lang['photos_max_size'] }}<br/>
-						<small>{{ lang['photos_max_size_desc'] }}</small>
-					</td>
-					<td class="contentEntry2" valign="middle">
-						<input type="text" name='save_con[photos_max_size]' value='{{ config['photos_max_size'] }}' style="width: 40px"/>
-					</td>
-				</tr>
-				<tr>
-					<td class="contentEntry1">{{ lang['photos_thumb_size'] }}<br/>
-						<small>{{ lang['photos_thumb_size_desc'] }}</small>
-					</td>
-					<td class="contentEntry2" valign="middle">
-						<input type="text" name='save_con[photos_thumb_size_x]' value='{{ config['photos_thumb_size_x'] }}' style="width: 40px"/>
-						x
-						<input type="text" name='save_con[photos_thumb_size_y]' value='{{ config['photos_thumb_size_y'] }}' style="width: 40px"/>
-					</td>
-				</tr>
+
 			</table>
 		</div>
 		<!-- ########################## IMAGES TAB ########################## -->

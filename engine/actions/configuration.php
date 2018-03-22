@@ -1,11 +1,16 @@
 <?php
 
-//
-// Copyright (C) 2006-2014 Next Generation CMS (http://ngcms.ru/)
-// Name: configuration.php
-// Description: Configuration managment
-// Author: Vitaly Ponomarev, Alexey Zinchenko
-//
+/*
+ * Copyright (C) 2006-2018 Kerno CMS
+ *
+ * Name: configuration.php
+ * Description: Configuration management
+ *
+ * @author Vitaly Ponomarev
+ * @author Alexey Zinchenko
+ * @author Dmitry Ryzhkov
+ *
+*/
 
 // Protect against hack attempts
 if (!defined('KERNO')) die ('HAL');
@@ -13,7 +18,6 @@ if (!defined('KERNO')) die ('HAL');
 $lang = LoadLang('configuration', 'admin');
 
 function twigmkSelect($params) {
-
 	$values = '';
 	if (isset($params['values']) && is_array($params['values'])) {
 		foreach ($params['values'] as $k => $v) {
@@ -92,8 +96,7 @@ function systemConfigSave() {
 
 		return false;
 	}
-	
-	
+
 	// Save our UUID or regenerate LOST UUID
 	$save_con['UUID'] = $config['UUID'];
 	if ($save_con['UUID'] == '') {
@@ -107,6 +110,14 @@ function systemConfigSave() {
 	} else {
 		$save_con['load_profiler'] = 0;
 	}
+
+    if($save_con['list_timezone']){
+        $slt = [];
+        foreach(explode(',', $save_con['list_timezone']) as $ltz){
+            $slt[] = trim($ltz);
+        }
+        $save_con['list_timezone'] = implode(',', $slt);
+    }
 
 	// Prepare resulting config content
 	$fcData = "<?php\n" . '$config = ' . var_export($save_con, true) . "\n;?>";
@@ -164,7 +175,7 @@ function systemConfigEditForm() {
 	if (($load_profiler < 0) || ($load_profiler > 86400))
 		$config['load_profiler'] = 0;
 
-	$mConfig = array();
+	$mConfig = [];
 	if (is_array($multiconfig))
 		foreach ($multiconfig as $k => $v) {
 			$v['key'] = $k;
@@ -172,27 +183,31 @@ function systemConfigEditForm() {
 		}
 
 	// Set default timeZone if it's empty
-	if (!$config['timezone'])
-		$config['timezone'] = 'Europe/Moscow';
+	if (!$config['timezone']) {
+        $config['timezone'] = 'Europe/Moscow';
+    }
 
-	$tVars = array(
+    $tzList = ($config['list_timezone']) ? explode(",", $config['list_timezone']) : [];
+
+	$tVars = [
 		//	SYSTEM CONFIG is available via `config` variable
 		'config'                => $config,
-		'list'                  => array(
+		'list'                  => [
 			'captcha_font' => ListFiles('trash', 'ttf'),
 			'theme'        => ListFiles('../templates', ''),
 			'default_lang' => ListFiles('lang', ''),
-			'wm_image'     => ListFiles('trash', array('gif', 'png'), 2),
+			'wm_image'     => ListFiles('trash', ['gif', 'png'], 2),
 			'auth_module'  => $auth_modules,
 			'auth_db'      => $auth_dbs,
-			'timezoneList' => timezone_identifiers_list(),
-		),
+            'UTCtime'      => gmdate("H:i"),
+			'timezoneList' => getSelectListTimezone($tzList),//explode(",", $config['list_timezone']) timezone_identifiers_list(),
+		],
 		'php_self'              => $PHP_SELF,
 		'timestamp_active_now'  => LangDate($config['timestamp_active'], time()),
 		'timestamp_updated_now' => LangDate($config['timestamp_updated'], time()),
 		'token'                 => genUToken('admin.configuration'),
 		'multiConfig'           => $mConfig,
-	);
+	];
 
 	//
 	// Fill parameters for multiconfig
@@ -222,5 +237,3 @@ if (isset($_REQUEST['subaction']) && ($_REQUEST['subaction'] == "save") && ($_SE
 
 // Show configuration form
 $main_admin = systemConfigEditForm();
-
-

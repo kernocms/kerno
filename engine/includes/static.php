@@ -1,11 +1,15 @@
 <?php
 
-//
-// Copyright (C) 2006-2010 Next Generation CMS (http://ngcms.ru/)
-// Name: static.php
-// Description: Static pages display sub-engine
-// Author: Vitaly Ponomarev, Alexey Zinchenko
-//
+/*
+ * Copyright (C) 2006-2018 Kerno CMS
+ *
+ * Name: static.php
+ * Description: Static pages display sub-engine
+ *
+ * @author Vitaly Ponomarev
+ * @author Alexey Zinchenko
+ *
+*/
 
 // Protect against hack attempts
 if (!defined('KERNO')) die ('HAL');
@@ -47,8 +51,7 @@ function showStaticPage($params) {
 	$content = $row['content'];
 
 	// If HTML code is not permitted - LOCK it
-	if (!($row['flags'] & 2))
-		$content = str_replace('<', '&lt;', $content);
+	if (!($row['flags'] & 2)) $content = str_replace('<', '&lt;', $content);
 
 	if ($config['blocks_for_reg']) $content = $parse->userblocks($content);
 	if ($config['use_htmlformatter'] && (!($row['flags'] & 1))) $content = $parse->htmlformatter($content);
@@ -61,7 +64,7 @@ function showStaticPage($params) {
 	$tvars['vars'] = array(
 		'title'    => $row['title'],
 		'content'  => $content,
-		'postdate' => ($row['postdate'] > 0) ? strftime('%d.%m.%Y %H:%M', $row['postdate']) : '',
+        'postdate'     => ($row['postdate']) ? LangDatetime('d.m.Y H:i', $row['postdate']) : '',
 	);
 
 	if (is_array($userROW) && ($userROW['status'] == 1 || $userROW['status'] == 2)) {

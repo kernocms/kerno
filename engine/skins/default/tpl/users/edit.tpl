@@ -48,26 +48,6 @@
 						<td width=50% class=contentEntry2 valign=middle>
 							<input class="email" type="text" name="mail" value="{{ mail }}" size=40/></td>
 					</tr>
-					<tr>
-						<td width=50% class=contentEntry1>{{ lang['site'] }}</td>
-						<td width=50% class=contentEntry2 valign=middle>
-							<input type="text" name="site" value="{{ site }}" size=40/></td>
-					</tr>
-					<tr>
-						<td width=50% class=contentEntry1>{{ lang['icq'] }}</td>
-						<td width=50% class=contentEntry2 valign=middle>
-							<input type="text" name="icq" value="{{ icq }}" size=40 maxlength=10/></td>
-					</tr>
-					<tr>
-						<td width=50% class=contentEntry1>{{ lang['from'] }}</td>
-						<td width=50% class=contentEntry2 valign=middle>
-							<input type="text" name="where_from" value="{{ where_from }}" size=40 maxlength=60/></td>
-					</tr>
-					<tr>
-						<td width=50% class=contentEntry1>{{ lang['about'] }}</td>
-						<td width=50% class=contentEntry2 valign=middle>
-							<textarea name="info" rows="7" cols="60">{{ info }}</textarea></td>
-					</tr>
 				</table>
 			</td>
 		</tr>

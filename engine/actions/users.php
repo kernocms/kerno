@@ -1,11 +1,15 @@
 <?php
 
-//
-// Copyright (C) 2006-2014 Next Generation CMS (http://ngcms.ru/)
-// Name: users.php
-// Description: manage users
-// Author: Vitaly Ponomarev
-//
+/*
+ * Copyright (C) 2006-2018 Kerno CMS
+ *
+ * Name: users.php
+ * Description: Users management
+ *
+ * @author Vitaly Ponomarev
+ * @author Dmitry Ryzhkov
+ *
+*/
 
 // Protect against hack attempts
 if (!defined('KERNO')) die ('HAL');
@@ -14,10 +18,8 @@ $lang = LoadLang('users', 'admin');
 
 LoadPluginLibrary('uprofile', 'lib');
 
-//
 // Form: Edit user
 function userEditForm() {
-
 	global $mysql, $lang, $twig, $mod, $PFILTERS, $UGROUP, $PHP_SELF;
 
 	$id = (getIsSet($_REQUEST['id'])) ? intval($_REQUEST['id']) : 0;
@@ -57,41 +59,35 @@ function userEditForm() {
 	$tVars = array(
 		'php_self'   => $PHP_SELF,
 		'name'       => secure_html($row['name']),
-		'regdate'    => LangDate("l, j Q Y - H:i", $row['reg']),
-		'com'        => $row['com'],
+		'regdate'    => LangDatetime("l, j Q Y - H:i", $row['registration_date']),
+		'com'        => $row['comments'],
 		'news'       => $row['news'],
 		'status'     => $status,
 		'mail'       => secure_html($row['mail']),
-		'site'       => secure_html($row['site']),
-		'icq'        => secure_html($row['icq']),
-		'where_from' => secure_html($row['where_from']),
-		'info'       => secure_html($row['info']),
 		'id'         => $id,
-		'last'       => (empty($row['last'])) ? $lang['no_last'] : LangDate('l, j Q Y - H:i', $row['last']),
+		'last'       => (empty($row['lastenter_date'])) ? $lang['no_last'] : LangDatetime('l, j Q Y - H:i', $row['lastenter_date']),
 		'ip'         => $row['ip'],
 		'token'      => genUToken('admin.users'),
-		'perm'       => array(
+		'perm'       => [
 			'modify' => $perm['modify'] ? 1 : 0,
-		),
+		],
 	);
 
-	if (is_array($PFILTERS['plugin.uprofile']))
-		foreach ($PFILTERS['plugin.uprofile'] as $k => $v) {
+	if (is_array($PFILTERS['plugin.uprofile'])) {
+        foreach ($PFILTERS['plugin.uprofile'] as $k => $v) {
+            $v->editProfileForm($row['id'], $row, $tVars);
+        }
+    }
 
-			$v->editProfileForm($row['id'], $row, $tVars);
-		}
-
-	ngSYSLOG(array('plugin' => '#admin', 'item' => 'users', 'ds_id' => $id), array('action' => 'editForm'), null, array(1));
+	ngSYSLOG(array('plugin' => '#admin', 'item' => 'users', 'ds_id' => $id), array('action' => 'editForm'), null, [1]);
 
 	$xt = $twig->loadTemplate('skins/default/tpl/users/edit.tpl');
 	return $xt->render($tVars);
 }
 
-//
 // Edit user's profile
 function userEdit() {
-
-	global $mysql, $lang, $mod;
+	global $mysql, $lang, $mod, $auth_db;
 
 	// Check for permissions
 	if (!checkPermission(array('plugin' => '#admin', 'item' => 'users'), null, 'modify')) {
@@ -119,41 +115,40 @@ function userEdit() {
 		return;
 	}
 
-	$pass = ($_REQUEST['password']) ? EncodePassword($_REQUEST['password']) : '';
+	$pass = ($_REQUEST['password']) ? $auth_db->createPassword(trim($_REQUEST['password'])) : '';
 
 	// Prepare a list of changed params
-	$cList = array();
-	foreach (array('level', 'site', 'icq', 'where_from', 'info', 'mail') as $k) {
+	$cList = [];
+	foreach (['level', 'mail'] as $k) {
 		if ($row[$k] != $_REQUEST[$k]) {
-			$cList[$k] = array($row[$k], $_REQUEST[$k]);
+			$cList[$k] = [$row[$k], $_REQUEST[$k]];
 		}
 	}
+
 	if ($pass) {
-		$cList['pass'] = array('****', '****');
+		$cList['pass'] = ['****', '****'];
 	}
 
-	ngSYSLOG(array('plugin' => '#admin', 'item' => 'users', 'ds_id' => $id), array('action' => 'editForm', 'list' => $cList), null, array(1));
+	ngSYSLOG(['plugin' => '#admin', 'item' => 'users', 'ds_id' => $id], ['action' => 'editForm', 'list' => $cList], null, [1]);
 
-	$mysql->query("update " . uprefix . "_users set `status`=" . db_squote($_REQUEST['status']) . ", `site`=" . db_squote($_REQUEST['site']) . ", `icq`=" . db_squote($_REQUEST['icq']) . ", `where_from`=" . db_squote($_REQUEST['where_from']) . ", `info`=" . db_squote($_REQUEST['info']) . ", `mail`=" . db_squote($_REQUEST['mail']) . ($pass ? ", `pass`=" . db_squote($pass) : '') . " where id=" . db_squote($row['id']));
-	msg(array("text" => $lang['msgo_edituser']));
+	$mysql->query("UPDATE " . uprefix . "_users SET `status`=" . db_squote($_REQUEST['status']) . ", `mail`=" . db_squote($_REQUEST['mail']) . ($pass ? ", `pass`=" . db_squote($pass) : '') . " WHERE id=" . db_squote($row['id']));
+	msg(["text" => $lang['msgo_edituser']]);
 }
 
-//
 // Add new user
 function userAdd() {
-
-	global $mysql, $lang, $mod, $config;
+	global $mysql, $lang, $mod, $config, $auth_db;
 
 	// Check for permissions
-	if (!checkPermission(array('plugin' => '#admin', 'item' => 'users'), null, 'modify')) {
-		msg(array("type" => "error", "text" => $lang['perm.denied']), 1, 1);
+	if (!checkPermission(['plugin' => '#admin', 'item' => 'users'], null, 'modify')) {
+		msg(["type" => "error", "text" => $lang['perm.denied']], 1, 1);
 
 		return;
 	}
 
 	// Check for security token
 	if ((!isset($_REQUEST['token'])) || ($_REQUEST['token'] != genUToken('admin.users'))) {
-		msg(array("type" => "error", "text" => $lang['error.security.token'], "info" => $lang['error.security.token#desc']));
+		msg(["type" => "error", "text" => $lang['error.security.token'], "info" => $lang['error.security.token#desc']]);
 
 		return;
 	}
@@ -164,27 +159,27 @@ function userAdd() {
 	$reglevel = $_REQUEST['reglevel'];
 
 	if ((!$regusername) || (!strlen(trim($regpassword))) || (!$regemail)) {
-		msg(array("type" => "error", "text" => $lang['msge_fields'], "info" => $lang['msgi_fields']));
+		msg(["type" => "error", "text" => $lang['msge_fields'], "info" => $lang['msgi_fields']]);
 
 		return;
 	}
+
 	if ($mysql->record("select * from " . uprefix . "_users where lower(name) = " . db_squote(strtolower($regusername)) . " or lower(mail)=" . db_squote(strtolower($regemail)))) {
-		msg(array("type" => "error", "text" => $lang['msge_userexists'], "info" => $lang['msgi_userexists']));
+		msg(["type" => "error", "text" => $lang['msge_userexists'], "info" => $lang['msgi_userexists']]);
 
 		return;
 	}
 
-	$add_time = time() + ($config['date_adjust'] * 60);
-	$regpassword = EncodePassword($regpassword);
+	$regpassword = $auth_db->createPassword($regpassword);
 
-	$mysql->query("insert into " . uprefix . "_users (name, pass, mail, status, reg) values (" . db_squote($regusername) . ", " . db_squote($regpassword) . ", " . db_squote($regemail) . ", " . db_squote($reglevel) . ", " . db_squote($add_time) . ")");
-	msg(array("text" => $lang['msgo_adduser']));
+	$mysql->query("INSERT INTO " . uprefix . "_users (name, pass, mail, status, registration_date) VALUES (" . db_squote($regusername) . ",
+" . db_squote($regpassword) . ", " . db_squote($regemail) . ", " . db_squote($reglevel) . ", " . db_squote(getDatetimeUTC()) . ")");
+
+	msg(["text" => $lang['msgo_adduser']]);
 }
 
-//
 // Bulk action: activate selected users
 function userMassActivate() {
-
 	global $mysql, $lang;
 
 	// Check for permissions
@@ -372,7 +367,6 @@ function userMassDeleteInactive() {
 //
 // Show list of users
 function userList() {
-
 	global $mysql, $lang, $mod, $userROW, $UGROUP, $twig, $PHP_SELF;
 
 	// Check for permissions
@@ -408,9 +402,9 @@ function userList() {
 
 	$inSort = (isset($_REQUEST['sort']) && (isset($sortOrderMap[$_REQUEST['sort']]))) ? $_REQUEST['sort'] : 'i';
 
-	$sortLinkMap = array();
-	foreach (array('i', 'n', 'r', 'l', 'p', 'g') as $kOrder) {
-		$sRec = array();
+	$sortLinkMap = [];
+	foreach (['i', 'n', 'r', 'l', 'p', 'g'] as $kOrder) {
+		$sRec = [];
 		$sRec['isActive'] = (($inSort == $kOrder) || ($inSort == $kOrder . 'd')) ? 1 : 0;
 		if ($sRec['isActive']) {
 			$sRec['sign'] = ($inSort == $kOrder) ? '&#8595;&#8595;' : '&#8593;&#8593;';
@@ -425,6 +419,7 @@ function userList() {
 				(isset($_REQUEST['rpp']) && $_REQUEST['rpp'] ? '&rpp=' . intval($_REQUEST['rpp']) : '') .
 				'&sort=' . $kOrder;
 		}
+
 		$sortLinkMap[$kOrder] = $sRec;
 	}
 
@@ -468,12 +463,12 @@ function userList() {
 			'groupID'     => $row['status'],
 			'groupName'   => $status,
 			'cntNews'     => $row['news'],
-			'cntComments' => $row['com'],
-			'regdate'     => LangDate('j Q Y - H:i', $row['reg']),
-			'lastdate'    => (empty($row['last'])) ? $lang['no_last'] : LangDate('j Q Y - H:i', $row['last']),
-			'flags'       => array(
+			'cntComments' => $row['comments'],
+			'regdate'     => LangDatetime('j Q Y - H:i', $row['registration_date']),
+			'lastdate'    => (empty($row['lastenter_date'])) ? $lang['no_last'] : LangDatetime('j Q Y - H:i', $row['lastenter_date']),
+			'flags'       => [
 				'isActive' => (!$row['activation'] || $row['activation'] == "") ? 1 : 0,
-			),
+			],
 		);
 
 		$tEntries [] = $tEntry;
@@ -495,13 +490,13 @@ function userList() {
 			'&page=%page%'
 	));
 
-	$tUgroup = array();
+	$tUgroup = [];
 	foreach ($UGROUP as $id => $grp) {
-		$tUge = array(
+		$tUge = [
 			'id'       => $id,
 			'identity' => $grp['identity'],
 			'name'     => $grp['name'],
-		);
+		];
 
 		$tUgroup [] = $tUge;
 	}
@@ -527,7 +522,6 @@ function userList() {
 
 	$xt = $twig->loadTemplate('skins/default/tpl/users/table.tpl');
 	return $xt->render($tVars);
-
 }
 
 // ==============================================
@@ -535,7 +529,7 @@ function userList() {
 // ==============================================
 
 if ($action == 'editForm') {
-	userEditForm();
+    $main_admin = userEditForm();
 } else {
 	switch ($action) {
 		case 'edit'                :
@@ -560,5 +554,6 @@ if ($action == 'editForm') {
 			$main_admin = userMassDeleteInactive();
 			break;
 	}
+
 	$main_admin = userList();
 }

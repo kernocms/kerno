@@ -31,24 +31,11 @@
 				<td>{{ lang.uprofile['last'] }}:</td>
 				<td class="second">{{ user.last }}</td>
 			</tr>
-			<tr>
-				<td>{{ lang.uprofile['from'] }}:</td>
-				<td class="second">{{ user.from }}</td>
-			</tr>
-			<tr>
-				<td>{{ lang.uprofile['about'] }}:</td>
-				<td class="second">{{ user.info }}</td>
-			</tr>
 		</table>
 	</div>
 </div>
-<div class="block-title-mini">{{ lang.uprofile['contact_data'] }}</div>
-<p>
-	{{ lang.uprofile['icq'] }}: {{ user.icq }}<br>
-	{{ lang.uprofile['site'] }}: {{ user.site }}
-</p>
 <div class="block-title-mini">{{ lang.uprofile['activity_data'] }}</div>
 <p>
 	{{ lang.uprofile['all_news'] }}: {{ user.news }}<br>
-	{{ lang.uprofile['all_comments'] }}: {{ user.com }}
+	{{ lang.uprofile['all_comments'] }}: {{ user.comments }}
 </p>

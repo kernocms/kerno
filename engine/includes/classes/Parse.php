@@ -16,12 +16,10 @@ if (!defined('KERNO')) die ('HAL');
 class Parse {
 
 	function slashes($content) {
-
 		return (get_magic_quotes_gpc()) ? $content : addslashes($content);
 	}
 
 	function userblocks($content) {
-
 		global $config, $lang, $userROW;
 		if (!$config['blocks_for_reg']) return $content;
 
@@ -170,7 +168,6 @@ class Parse {
 	}
 
 	function bbcodes($content) {
-
 		global $lang, $config, $userROW, $SYSTEM_FLAGS;
 
 		if (!$config['use_bbcodes']) return $content;
@@ -456,7 +453,6 @@ class Parse {
 	}
 
 	function htmlformatter($content) {
-
 		global $config;
 
 		if (!$config['use_htmlformatter'])
@@ -489,7 +485,6 @@ class Parse {
 	}
 
 	function smilies($content) {
-
 		global $config;
 
 		if (!$config['use_smilies'])
@@ -558,8 +553,7 @@ class Parse {
 
 		$len = mb_strlen($text);
 
-		if ($len <= $size)
-			return $text;
+		if ($len <= $size) return $text;
 
 		$textLen = 0;
 		$position = -1;

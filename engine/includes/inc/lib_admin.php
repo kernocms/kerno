@@ -174,16 +174,16 @@ category_id > 0 GROUP BY category_id") as $crec) {
 					if (!isset($catmap[$cid])) continue;
 					$clist[$cid]++;
 					$ncats++;
-					$mysql->query("INSERT INTO " . prefix . "_news_map (news_id, category_id, dt) VALUES (" . intval($nr['id']) . ", " . intval($cid) . ", from_unixtime(
-" . (($nr['editdate'] > $nr['postdate']) ? $nr['editdate'] : $nr['postdate']) . "))");
+					$mysql->query("INSERT INTO " . prefix . "_news_map (news_id, category_id, dt) VALUES (" . intval($nr['id']) . ", " . (int)$cid . ", " . (($nr['editdate'] > $nr['postdate']) ? db_squote($nr['editdate']) : db_squote($nr['postdate'])) . ")");
 				}
 				// Also put news without category into special category with ID = 0
 				if (!$ncats) {
-					$mysql->query("insert into " . prefix . "_news_map (news_id, category_id, dt) values (" . intval($nr['id']) . ", 0, from_unixtime(" . (($nr['editdate'] > $nr['postdate']) ? $nr['editdate'] : $nr['postdate']) . "))");
+					$mysql->query("INSERT INTO " . prefix . "_news_map (news_id, category_id, dt) VALUES (" . (int)$nr['id'] . ", 0, " . (($nr['editdate'] > $nr['postdate']) ? db_squote($nr['editdate']) : db_squote($nr['postdate'])) . ")");
 				}
 			}
+
 			foreach ($clist as $cid => $cv) {
-				$mysql->query("update " . prefix . "_category set posts=posts+" . intval($cv) . " where id = " . intval($cid));
+				$mysql->query("UPDATE " . prefix . "_category SET posts=posts+" . (int)$cv . " WHERE id = " . (int)$cid);
 			}
 		}
 	}
@@ -278,11 +278,11 @@ function massDeleteNews($list, $permCheck = true) {
 					$mysql->query("update " . uprefix . "_users set com=com-1 where id=" . $crow['author_id']);
 				}
 			}
-			$mysql->query("DELETE FROM " . prefix . "_comments WHERE post=" . db_squote($nrow['id']));
+			$mysql->query("DELETE FROM " . prefix . "_comments WHERE post=" . (int)$nrow['id']);
 		}
 
-		$mysql->query("DELETE FROM " . prefix . "_news WHERE id=" . db_squote($nrow['id']));
-		$mysql->query("DELETE FROM " . prefix . "_news_map WHERE news_id = " . db_squote($nrow['id']));
+		$mysql->query("DELETE FROM " . prefix . "_news WHERE id=" . (int)$nrow['id']);
+		$mysql->query("DELETE FROM " . prefix . "_news_map WHERE news_id = " . (int)$nrow['id']);
 
 		// Notify plugins about news deletion
 		if (is_array($PFILTERS['news']))
@@ -476,6 +476,8 @@ function addNews($mode = array()) {
 	// Rewrite `\r\n` to `\n`
 	$content = str_replace("\r\n", "\n", $content);
 
+    $SQL['save_rawcontent'] = 0;
+
 	// Check title
 	if ((!mb_strlen(trim($title))) || ((!mb_strlen(trim($content))) && (!$config['news_without_content']))) {
 		msg(["type" => "error", "text" => $lang['addnews']['msge_fields'], "info" => $lang['addnews']['msgi_fields']]);
@@ -589,10 +591,28 @@ function addNews($mode = array()) {
 			$SQL['approve'] = 0;
 	}
 
+    if($config['save_news_content_mode'] == 'parsed'){
+        $rawContent = $content;
+
+        if($config['use_bbcodes']) {
+            $content = $parse->bbcodes($content);
+        }
+
+        if($config['use_htmlformatter'] && (!($SQL['flags'] & 1))) {
+            $content = $parse->htmlformatter($content);
+        }
+
+        if($config['use_smilies']) {
+            $content = $parse->smilies($content);
+        }
+
+        $SQL['save_rawcontent'] = 1;
+    }
+
 	$SQL['content'] = $content;
 
 	// Dummy parameter for API call
-	$tvars = array();
+	$tvars = [];
 
 	exec_acts('addnews');
 
@@ -616,21 +636,25 @@ function addNews($mode = array()) {
 		$vparams[] = db_squote($v);
 	}
 
-	$mysql->query("insert into " . prefix . "_news (" . implode(",", $vnames) . ") values (" . implode(",", $vparams) . ")");
+	$mysql->query("INSERT INTO " . prefix . "_news (" . implode(",", $vnames) . ") VALUES (" . implode(",", $vparams) . ")");
 	$id = $mysql->result("SELECT LAST_INSERT_ID() as id");
+
+    if($SQL['save_rawcontent'] && isset($rawContent) && $rawContent){
+        $mysql->query("INSERT INTO " . prefix . "_news_rawcontent (`news_id`, `content_raw`) VALUES (" . (int)$id . ", " . db_squote($rawContent) . ")");
+    }
 
 	// Update category / user posts counter [ ONLY if news is approved ]
 	if ($SQL['approve'] == 1) {
 		if (count($catids)) {
-			$mysql->query("update " . prefix . "_category set posts=posts+1 where id in (" . implode(", ", array_keys($catids)) . ")");
+			$mysql->query("UPDATE " . prefix . "_category SET posts=posts+1 WHERE id IN (" . implode(", ", array_keys($catids)) . ")");
 			foreach (array_keys($catids) as $catid) {
-				$mysql->query("insert into " . prefix . "_news_map (news_id, category_id, dt) values (" . db_squote($id) . ", " . db_squote($catid) . ", now())");
+				$mysql->query("INSERT INTO " . prefix . "_news_map (news_id, category_id, dt) VALUES (" . (int)$id . ", " . (int)$catid . ", " . db_squote($SQL['postdate']) .")");
 			}
 		} else {
-			$mysql->query("insert into " . prefix . "_news_map (news_id, category_id, dt) values (" . db_squote($id) . ", 0, now())");
+			$mysql->query("INSERT INTO " . prefix . "_news_map (news_id, category_id, dt) VALUES (" . (int)$id . ", 0, " . db_squote($SQL['postdate']) .")");
 		}
 
-		$mysql->query("update " . uprefix . "_users set news=news+1 where id=" . (int)$SQL['author_id']);
+		$mysql->query("UPDATE " . uprefix . "_users SET news=news+1 WHERE id=" . (int)$SQL['author_id']);
 	}
 
 	// Attaches are available only for admin panel
@@ -798,6 +822,8 @@ function editNews($mode = []) {
 	// Rewrite `\r\n` to `\n`
 	$content = str_replace("\r\n", "\n", $content);
 
+    $SQL['save_rawcontent'] = 0;
+
 	// Check if we have content
 	if ((!mb_strlen(trim($title))) || ((!mb_strlen(trim($content))) && (!$config['news_without_content']))) {
 		msg(["type" => "error", "text" => $lang['msge_fields'], "info" => $lang['msgi_fields']]);
@@ -896,6 +922,26 @@ function editNews($mode = []) {
 		}
 	}
 
+    //
+    if($config['save_news_content_mode'] == 'parsed'){
+        $rawContent = $content;
+
+        if($config['use_bbcodes']) {
+            $content = $parse->bbcodes($content);
+        }
+
+        if($config['use_htmlformatter'] && (!($SQL['flags'] & 1))) {
+            $content = $parse->htmlformatter($content);
+        }
+
+        if($config['use_smilies']) {
+            $content = $parse->smilies($content);
+        }
+
+        $SQL['save_rawcontent'] = 1;
+    }
+    //
+
 	$SQL['title'] = $title;
 	$SQL['content'] = $content;
 
@@ -943,13 +989,14 @@ function editNews($mode = []) {
 	exec_acts('editnews', $id);
 
 	$pluginNoError = 1;
-	if (is_array($PFILTERS['news']))
-		foreach ($PFILTERS['news'] as $k => $v) {
-			if (!($pluginNoError = $v->editNews($id, $row, $SQL, $tvars))) {
-				msg(["type" => "error", "text" => str_replace('{plugin}', $k, $lang['editnews']['msge_pluginlock'])]);
-				break;
-			}
-		}
+	if (is_array($PFILTERS['news'])) {
+        foreach ($PFILTERS['news'] as $k => $v) {
+            if (!($pluginNoError = $v->editNews($id, $row, $SQL, $tvars))) {
+                msg(["type" => "error", "text" => str_replace('{plugin}', $k, $lang['editnews']['msge_pluginlock'])]);
+                break;
+            }
+        }
+    }
 
 	if (!$pluginNoError) {
 		return;
@@ -960,7 +1007,14 @@ function editNews($mode = []) {
 		$SQLparams[] = $k . ' = ' . db_squote($v);
 	}
 
-	$mysql->query("update " . prefix . "_news set " . implode(", ", $SQLparams) . " where id = " . db_squote($id));
+	$mysql->query("UPDATE " . prefix . "_news SET " . implode(", ", $SQLparams) . " WHERE id = " . (int)$id);
+
+    if($SQL['save_rawcontent'] && isset($rawContent) && $rawContent){
+        $mysql->query("INSERT INTO " . prefix . "_news_rawcontent (`news_id`, `content_raw`) VALUES (" . (int)$id . ", " . db_squote($rawContent) . ") ON
+DUPLICATE KEY UPDATE content_raw=".db_squote($rawContent));
+    } else {
+        $mysql->query("DELETE FROM " . prefix . "_news_rawcontent WHERE news_id=" . (int)$id);
+    }
 
 	// Update category posts counters
 	if (($row['approve'] == 1) && count($oldcatids)) {
@@ -978,12 +1032,10 @@ function editNews($mode = []) {
 		if (count($catids)) {
 			$mysql->query("UPDATE " . prefix . "_category SET posts=posts+1 WHERE id IN (" . implode(",", array_keys($catids)) . ")");
 			foreach (array_keys($catids) as $catid) {
-				$mysql->query("INSERT INTO " . prefix . "_news_map (news_id, category_id, dt) VALUES (" . db_squote($id) . ", " . db_squote($catid) . ", from_unixtime
-(" . db_squote($SQL['editdate']) . "))");
+				$mysql->query("INSERT INTO " . prefix . "_news_map (news_id, category_id, dt) VALUES (" . (int)$id . ", " . (int)$catid . ", " . db_squote($SQL['editdate']) . ")");
 			}
 		} else {
-			$mysql->query("INSERT INTO " . prefix . "_news_map (news_id, category_id, dt) VALUES (" . db_squote($id) . ", 0, from_unixtime(
-" . db_squote($SQL['editdate']) . "))");
+			$mysql->query("INSERT INTO " . prefix . "_news_map (news_id, category_id, dt) VALUES (" . (int)$id . ", 0, " . db_squote($SQL['editdate']) . ")");
 		}
 	}
 
@@ -1022,10 +1074,11 @@ function editNews($mode = []) {
 	}
 
 	// Notify plugins about news edit completion
-	if (is_array($PFILTERS['news']))
-		foreach ($PFILTERS['news'] as $k => $v) {
-			$v->editNewsNotify($id, $row, $SQL, $tvars);
-		}
+	if (is_array($PFILTERS['news'])) {
+        foreach ($PFILTERS['news'] as $k => $v) {
+            $v->editNewsNotify($id, $row, $SQL, $tvars);
+        }
+    }
 
 	// Update attach count if we need this
 	$numFiles = $mysql->result("SELECT COUNT(*) AS cnt FROM " . prefix . "_files WHERE (storage=1) AND (linked_ds=1) AND (linked_id=" . (int)$id . ")");

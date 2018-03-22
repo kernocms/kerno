@@ -34,23 +34,7 @@
 						</tr>
 						<tr>
 							<td><b>{{ lang.uprofile['all_comments'] }}:</b></td>
-							<td>{{ user.com }}</td>
-						</tr>
-						<tr>
-							<td><b>{{ lang.uprofile['site'] }}:</b></td>
-							<td><strong>{{ user.site }}</strong></td>
-						</tr>
-						<tr>
-							<td><b>{{ lang.uprofile['icq'] }}:</b></td>
-							<td valign="middle">{{ user.icq }}</td>
-						</tr>
-						<tr>
-							<td><b>{{ lang.uprofile['from'] }}:</b></td>
-							<td>{{ user.from }}</td>
-						</tr>
-						<tr>
-							<td><b>{{ lang.uprofile['about'] }}:</b></td>
-							<td>{{ user.info }}</td>
+							<td>{{ user.comments }}</td>
 						</tr>
 					</table>
 				</td>

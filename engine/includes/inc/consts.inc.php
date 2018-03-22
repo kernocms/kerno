@@ -36,11 +36,8 @@
 @define('images_url', $config['images_url']);
 @define('avatars_dir', $config['avatars_dir']);
 @define('avatars_url', $config['avatars_url']);
-@define('photos_dir', $config['photos_dir']);
-@define('photos_url', $config['photos_url']);
 
 @define('timestamp', $config['timestamp_active']);
-@define('date_adjust', $config['date_adjust']);
 
 @define('skins_url', admin_url . '/skins/default');
 @define('tpl_actions', root . 'skins/default/tpl/');
