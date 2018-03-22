@@ -15,12 +15,11 @@
 // Protect against hack attempts
 if (!defined('KERNO')) die ('HAL');
 
-//
-// SQL security string escape
-//
-function db_squote($string) {
 
+// SQL security string escape
+function db_squote($string) {
 	global $mysql;
+
 	if (is_array($string)) {
 		return false;
 	}
@@ -29,8 +28,8 @@ function db_squote($string) {
 }
 
 function db_dquote($string) {
-
 	global $mysql;
+
 	if (is_array($string)) {
 		return false;
 	}
@@ -228,6 +227,46 @@ function LangDatetime($format, $datetime) {
     return $date->format($format);
 }
 
+function getSelectListTimezone($list = []) {
+    $identifiers = (is_array($list) && !empty($list)) ? $list : DateTimeZone::listIdentifiers();
+
+    if( !is_array($identifiers) || empty($identifiers) ) return [];
+
+    $currentTZ = date_default_timezone_get();
+    date_default_timezone_set('UTC');
+
+    foreach($identifiers as $tz) {
+        try {
+            $dtz = new DateTimeZone($tz);
+        } catch(Exception $e) {
+            continue;
+        }
+
+        $name =  $dtz->getName();
+        $offset = $dtz->getOffset(new DateTime());
+        $tzS[$name] = $offset;
+    }
+
+    asort($tzS);
+    array_walk($tzS, function (&$valOffset, $keyName) {
+        $valOffset = '(UTC ' . (($valOffset < 0) ? '-' : '+') . date('H:i', abs($valOffset)) . ') ' . $keyName;
+    });
+
+    date_default_timezone_set($currentTZ);
+    return $tzS;
+}
+
+function installSelectTZ($params, $default = 'Europe/Moscow') {
+    if(empty($params)) return 'Ошибка';
+
+    $values = '';
+    foreach ($params as $k => $v) {
+        $values .= '<option value="' . $k . '"' . (($k == $default) ? ' selected="selected"' : '') . '>' . $v . '</option>';
+    }
+
+    return "<select name='timezone'>" . $values . '</select>';
+}
+
 //
 // Generate a list of smilies to show
 function InsertSmilies($insert_location, $break_location = false, $area = false) {
@@ -386,29 +425,32 @@ function checkBanned($ip, $act, $subact, $userRec, $name) {
 // $userRec	- record of user (in case of logged in)
 // $name	- name entered by user (in case it was entered)
 function checkFlood($mode, $ip, $act, $subact, $userRec, $name) {
-
 	global $mysql, $config;
 
 	// Return if flood protection is disabled
-	if (!$config['flood_time']) {
+	if (!$config['flood_time'] && intval($config['flood_time']) <= 0) {
 		return 0;
 	}
-
-	$this_time = time() + ($config['date_adjust'] * 60) - $config['flood_time'];
 
 	// If UPDATE mode is used - update data
 	if ($mode) {
-		$this_time = time() + ($config['date_adjust'] * 60);
-		$mysql->query("insert into " . prefix . "_flood (ip, id) values (" . db_squote($ip) . ", " . db_squote($this_time) . ") on duplicate key update id=" . db_squote($this_time));
+        $setDate = getDatetimeUTC();
+
+		$mysql->query("INSERT INTO " . prefix . "_flood (ip, set_date) VALUES (" . db_squote($ip) . ", " . db_squote($setDate) . ") ON DUPLICATE KEY
+UPDATE set_date=" . db_squote($setDate));
 
 		return 0;
 	}
 
+    $date = new DateTime(null, new DateTimeZone('UTC'));
+    $date->sub(new DateInterval('PT' . $config['flood_time'] . 'S'));
+    $expiredDate = $date->format("Y-m-d H:i:s");
+
 	// Delete expired records
-	$mysql->query("DELETE FROM " . prefix . "_flood WHERE id < " . db_squote($this_time));
+	$mysql->query("DELETE FROM " . prefix . "_flood WHERE set_date <= " . db_squote($expiredDate));
 
 	// Check if we have record
-	if ($mysql->record("SELECT * FROM " . prefix . "_flood WHERE id > " . db_squote($this_time) . " AND ip = " . db_squote($ip) . " limit 1")) {
+	if ($mysql->record("SELECT * FROM " . prefix . "_flood WHERE ip = " . db_squote($ip) . " AND set_date > " . db_squote($expiredDate) . " LIMIT 1")) {
 		// Flood found
 		return 1;
 	}
@@ -417,12 +459,10 @@ function checkFlood($mode, $ip, $act, $subact, $userRec, $name) {
 }
 
 function zzMail($to, $subject, $message, $filename = false, $mail_from = false, $ctype = 'text/html') {
-
 	sendEmailMessage($to, $subject, $message, $filename, $mail_from, $ctype);
 }
 
 function sendEmailMessage($to, $subject, $message, $filename = false, $mail_from = false, $ctype = 'text/html') {
-
 	global $lang, $config;
 
 	// Include new PHP mailer class
@@ -436,9 +476,10 @@ function sendEmailMessage($to, $subject, $message, $filename = false, $mail_from
 	if ($config['mailfrom_name']) {
 		$mail->FromName = $config['mailfrom_name'];
 	}
+
 	if ($mail_from) {
 		$mail->From = $mail_from;
-	} else if ($config['mailfrom']) {
+	} elseif ($config['mailfrom']) {
 		$mail->From = $config['mailfrom'];
 	} else {
 		$mail->From = "mailbot@" . str_replace("www.", "", $_SERVER['SERVER_NAME']);
@@ -448,6 +489,7 @@ function sendEmailMessage($to, $subject, $message, $filename = false, $mail_from
 	$mail->Body = $message;
 	$mail->ContentType = $ctype;
 	$mail->AddAddress($to, $to);
+
 	if (($filename !== false) && (is_file($filename))) {
 		$mail->AddAttachment($filename);
 	}
@@ -466,6 +508,7 @@ function sendEmailMessage($to, $subject, $message, $filename = false, $mail_from
 				$mail->isMail();
 				break;
 			}
+
 			$mail->isSMTP();
 			$mail->Host = $config['mail']['smtp']['host'];
 			$mail->Port = $config['mail']['smtp']['port'];
@@ -709,10 +752,9 @@ function ChangeDate($time = 0, $nodiv = 0) {
 // $silentError		- не выводить сообщение об ошибке
 // $returnNullOnError	- возвращать NULL при ошибке
 function ListFiles($path, $ext, $showExt = 0, $silentError = 0, $returnNullOnError = 0) {
-
 	$list = array();
-	if (!is_array($ext))
-		$ext = array($ext);
+
+	if (!is_array($ext)) $ext = array($ext);
 
 	if (!($handle = opendir($path))) {
 		if (!$silentError)
@@ -1485,11 +1527,9 @@ function error404() {
 	}
 }
 
-//
-// Generate SecureToken for protection from CSRF attacks
-//
-function genUToken($identity = '') {
 
+// Generate SecureToken for protection from CSRF attacks
+function genUToken($identity = '') {
 	global $userROW, $config;
 
 	$line = $identity;

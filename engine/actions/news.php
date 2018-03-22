@@ -69,7 +69,7 @@ function editNewsForm() {
 	$id = (int)$_REQUEST['id'];
 
 	// Try to find news that we're trying to edit
-	if (!is_array($row = $mysql->record("select * from " . prefix . "_news where id = " . db_squote($id), 1))) {
+	if (!is_array($row = $mysql->record("SELECT * FROM " . prefix . "_news WHERE id = " . (int)$id, 1))) {
 		msg(["type" => "error", "text" => $lang['msge_not_found']]);
 
 		return;
@@ -86,11 +86,14 @@ function editNewsForm() {
 	}
 
 	// Load attached files/images
-	$row['#files'] = $mysql->select("select *, date_format(from_unixtime(date), '%d.%m.%Y') as date from " . prefix . "_files where (linked_ds = 1) and (linked_id = " . db_squote($row['id']) . ')', 1);
-	$row['#images'] = $mysql->select("select *, date_format(from_unixtime(date), '%d.%m.%Y') as date from " . prefix . "_images where (linked_ds = 1) and (linked_id = " . db_squote($row['id']) . ')', 1);
+	$row['#files'] = $mysql->select("SELECT *, date_format(from_unixtime(date), '%d.%m.%Y') AS date FROM " . prefix . "_files WHERE (linked_ds = 1) AND
+(linked_id =
+ " . (int)$row['id'] . ')', 1);
+	$row['#images'] = $mysql->select("SELECT *, date_format(from_unixtime(date), '%d.%m.%Y') AS date FROM " . prefix . "_images WHERE (linked_ds = 1) AND
+(linked_id = " . (int)$row['id'] . ')', 1);
 
 	$cats = (mb_strlen($row['catid']) > 0) ? explode(",", $row['catid']) : [];
-	$content = $row['content'];
+	//$content = $row['content'];
 
 	$tVars = [
 		'php_self'    => $PHP_SELF,
@@ -163,6 +166,12 @@ function editNewsForm() {
 
 	$tVars['flags']['params.lost'] = ($tVars['flags']['publish.lost'] || $tVars['flags']['html.lost'] || $tVars['flags']['mainpage.lost'] || $tVars['flags']['pinned.lost'] || $tVars['flags']['catpinned.lost'] || $tVars['flags']['multicat.lost']) ? 1 : 0;
 
+    if($row['save_rawcontent']){
+        if ( $rawContent = $mysql->result("SELECT content_raw FROM " . prefix . "_news_rawcontent WHERE news_id = " . (int)$id, 1) ) {
+            $row['content'] = $rawContent;
+        }
+    }
+
 	// Generate data for content input fields
 	if ($config['news.edit.split']) {
 		$tVars['content']['delimiter'] = '';
@@ -182,7 +191,7 @@ function editNewsForm() {
 	}
 
 	// Check for attached files
-	$attachEntries = array();
+	$attachEntries = [];
 	$attachNumber = 0;
 
 	if ($row['num_files']) {
@@ -193,12 +202,12 @@ function editNewsForm() {
 			if ($arow['plugin'] != '') continue;
 
 			$attachNumber++;
-			$attachEntry = array(
+			$attachEntry = [
 				'id'        => $arow['id'],
 				'num'       => $attachNumber,
 				'date'      => $arow['date'],
 				'orig_name' => $arow['orig_name'],
-			);
+			];
 
 			// Check if file exists
 			$fname = ($arow['storage'] ? $config['attach_dir'] : $config['files_dir']) . $arow['folder'] . '/' . $arow['name'];
@@ -211,17 +220,19 @@ function editNewsForm() {
 			$attachEntries [] = $attachEntry;
 		}
 	}
+
 	$tVars['attachEntries'] = $attachEntries;
 	$tVars['attachCount'] = $attachNumber;
 
-	if (getIsSet($row['xfields']))
-		exec_acts('editnews_entry', $row['xfields'], '');
+	if (getIsSet($row['xfields'])) { exec_acts('editnews_entry', $row['xfields'], ''); }
+
 	exec_acts('editnews_form');
 
-	if (is_array($PFILTERS['news']))
-		foreach ($PFILTERS['news'] as $k => $v) {
-			$v->editNewsForm($id, $row, $tVars);
-		}
+	if (is_array($PFILTERS['news'])) {
+        foreach ($PFILTERS['news'] as $k => $v) {
+            $v->editNewsForm($id, $row, $tVars);
+        }
+    }
 
 	$xt = $twig->loadTemplate('skins/default/tpl/news/edit.tpl');
 	return $xt->render($tVars);
@@ -746,32 +757,33 @@ do {
 	if ($action == "manage") {
 		switch ($subaction) {
 			case 'mass_currdate'    :
-				$curdate = time() + ($config['date_adjust'] * 60);
-				$main_admin = massNewsModify(array('postdate' => $curdate), 'msgo_currdate', 'capprove');
+				$curDate = getDatetimeUTC();
+				$main_admin = massNewsModify(['postdate' => $curDate], 'msgo_currdate', 'capprove');
 				break;
 			case 'mass_approve'      :
-				$main_admin = massNewsModify(array('approve' => 1), 'msgo_approved', 'approve');
+				$main_admin = massNewsModify(['approve' => 1], 'msgo_approved', 'approve');
 				break;
 			case 'mass_mainpage'     :
-				$main_admin = massNewsModify(array('mainpage' => 1), 'msgo_mainpaged', 'mainpage');
+				$main_admin = massNewsModify(['mainpage' => 1], 'msgo_mainpaged', 'mainpage');
 				break;
 			case 'mass_unmainpage'   :
-				$main_admin = massNewsModify(array('mainpage' => 0), 'msgo_unmainpage', 'unmainpage');
+				$main_admin = massNewsModify(['mainpage' => 0], 'msgo_unmainpage', 'unmainpage');
 				break;
 			case 'mass_forbidden'    :
-				$main_admin = massNewsModify(array('approve' => 0), 'msgo_forbidden', 'forbidden');
+				$main_admin = massNewsModify(['approve' => 0], 'msgo_forbidden', 'forbidden');
 				break;
 			case 'mass_com_forbidden':
-				$main_admin = massNewsModify(array('allow_com' => 0), 'msgo_cforbidden', 'cforbidden');
+				$main_admin = massNewsModify(['allow_com' => 0], 'msgo_cforbidden', 'cforbidden');
 				break;
 			case 'mass_com_approve'  :
-				$main_admin = massNewsModify(array('allow_com' => 1), 'msgo_capproved', 'capprove');
+				$main_admin = massNewsModify(['allow_com' => 1], 'msgo_capproved', 'capprove');
 				break;
 			case 'mass_delete'       :
 				$main_admin = massNewsDelete();
 				break;
 		}
 	}
+
 	$main_admin = listNewsForm();
 
 } while (false);

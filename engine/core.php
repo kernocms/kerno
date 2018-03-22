@@ -427,6 +427,17 @@ if ((is_object($AUTH_METHOD[$config['auth_module']])) && (is_object($AUTH_METHOD
 		$twigGlobal['flags']['isLogged'] = 1;
 		$twigGlobal['user'] = $userROW;
 		//$twig->addGlobalRef('user',	$userROW);
+
+        if(pluginGetVariable('uprofile', 'enabled_timezone')){
+            if($userROW['timezone']){
+                try {
+                    $timezone = new DateTimeZone($userROW['timezone']);
+                    date_default_timezone_set($timezone->getName());
+                } catch(Exception $e) {
+                    //
+                }
+            }
+        }
 	}
 } else {
 	echo "Fatal error: No auth module is found.<br />To fix problem please run <i>upgrade.php</i> script<br /><br />\n";

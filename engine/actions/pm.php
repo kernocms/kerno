@@ -13,21 +13,20 @@ if (!defined('KERNO')) die ('HAL');
 $lang = LoadLang('pm', 'admin');
 
 function pm_send() {
+	global $mysql, $lang, $userROW;
 
-	global $mysql, $config, $lang, $userROW;
-
-	$time = time() + ($config['date_adjust'] * 60);
+	$time = getDatetimeUTC();
 
 	$sendto = trim($_REQUEST['sendto']);
 	$title = secure_html($_REQUEST['title']);
 	$content = $_REQUEST['content'];
 
-	if (!$title || strlen($title) > "50") {
+	if (!$title || mb_strlen($title) > "50") {
 		msg(array("type" => "error", "text" => $lang['msge_title'], "info" => $lang['msgi_title']));
 
 		return;
 	}
-	if (!$content || strlen($content) > "3000") {
+	if (!$content || mb_strlen($content) > "3000") {
 		msg(array("type" => "error", "text" => $lang['msge_content'], "info" => $lang['msgi_content']));
 
 		return;
@@ -44,18 +43,18 @@ function pm_send() {
 }
 
 function pm_list() {
-
 	global $mysql, $config, $lang, $userROW, $tpl, $mod, $PHP_SELF;
 
 	$entries = '';
 	foreach ($mysql->select("select pm.*, u.id as uid, u.name as uname from " . uprefix . "_users_pm pm left join " . uprefix . "_users u on pm.from_id=u.id where pm.to_id = " . db_squote($userROW['id']) . " order by pmid desc limit 0, 30") as $row) {
+
 		$author = '';
 		if ($row['from_id'] && $row['uid']) {
 			$alink = checkLinkAvailable('uprofile', 'show') ?
 				generateLink('uprofile', 'show', array('name' => $row['uname'], 'id' => $row['uid'])) :
 				generateLink('core', 'plugin', array('plugin' => 'uprofile', 'handler' => 'show'), array('name' => $row['uname'], 'id' => $row['uid']));
 			$author = '<a href="' . $alink . '">' . $row['uname'] . '</a>';
-		} else if ($row['from_id']) {
+		} elseif ($row['from_id']) {
 			$author = $lang['udeleted'];
 		} else {
 			$author = $lang['messaging'];
@@ -64,11 +63,12 @@ function pm_list() {
 		$tvars['vars'] = array(
 			'php_self' => $PHP_SELF,
 			'pmid'     => $row['pmid'],
-			'pmdate'   => LangDate('j.m.Y - H:i', $row['pmdate']),
+			'pmdate'   => LangDatetime('j.m.Y - H:i', $row['pmdate']),
 			'title'    => $row['title'],
 			'link'     => $author,
 			'viewed'   => $row['viewed'] = ($row['viewed'] == 1 ? $lang["viewed"] : "<font color=green><b>$lang[unviewed]</b></font>")
 		);
+
 		$tpl->template('entries', tpl_actions . $mod);
 		$tpl->vars('entries', $tvars);
 		$entries .= $tpl->show('entries');
@@ -79,14 +79,14 @@ function pm_list() {
 		'php_self' => $PHP_SELF,
 		'entries'  => $entries
 	);
+
 	exec_acts('pm');
 	$tpl->vars('table', $tvars);
 	return $tpl->show('table');
 }
 
 function pm_read() {
-
-	global $mysql, $config, $lang, $userROW, $tpl, $mod, $parse, $PHP_SELF;
+	global $mysql, $lang, $userROW, $tpl, $mod, $parse, $PHP_SELF;
 
 	$pmid = $_REQUEST['pmid'];
 	if ($row = $mysql->record("select * from " . uprefix . "_users_pm where pmid = " . db_squote($pmid) . "and (to_id = " . db_squote($userROW['id']) . " or from_id=" . db_squote($userROW['id']) . ")")) {
@@ -98,8 +98,10 @@ function pm_read() {
 			'from'     => $row['from'],
 			'content'  => $parse->htmlformatter($parse->smilies($parse->bbcodes($row['content'])))
 		);
+
 		exec_acts('pm_read');
 		$tpl->vars('read', $tvars);
+
 		return $tpl->show('read');
 		if ((!$row['viewed']) && ($row['to_id'] == $userROW['id'])) {
 			$mysql->query("update " . uprefix . "_users_pm set `viewed` = '1' WHERE `pmid` = " . db_squote($row['pmid']));
@@ -110,8 +112,7 @@ function pm_read() {
 }
 
 function pm_reply() {
-
-	global $mysql, $config, $lang, $userROW, $tpl, $mod, $parse;
+	global $mysql, $config, $lang, $userROW, $tpl, $mod, $PHP_SELF, $parse;
 
 	$pmid = $_REQUEST['pmid'];
 	if ($row = $mysql->record("select * from " . uprefix . "_users_pm where pmid = " . db_squote($pmid) . "and (to_id = " . db_squote($userROW['id']) . " or from_id=" . db_squote($userROW['id']) . ")")) {
@@ -129,7 +130,9 @@ function pm_reply() {
 			'sendto'    => $row['from_id'],
 			'quicktags' => QuickTags(false, "pmmes")
 		);
+
 		$tvars['vars']['smilies'] = ($config['use_smilies'] == "1") ? InsertSmilies("content", 10) : '';
+
 		exec_acts('pm_reply');
 		$tpl->vars('reply', $tvars);
 		return $tpl->show('reply');
@@ -139,22 +142,23 @@ function pm_reply() {
 }
 
 function pm_write() {
-
 	global $mysql, $config, $lang, $userROW, $tpl, $mod, $PHP_SELF;
 
 	$tpl->template('write', tpl_actions . $mod);
+
 	$tvars['vars'] = array(
 		'php_self'  => $PHP_SELF,
 		'quicktags' => QuickTags(false, "pmmes")
 	);
+
 	$tvars['vars']['smilies'] = ($config['use_smilies'] == "1") ? InsertSmilies("content", 10) : '';
+
 	exec_acts('pm_write');
 	$tpl->vars('write', $tvars);
 	return $tpl->show('write');
 }
 
 function pm_delete() {
-
 	global $mysql, $config, $lang, $userROW, $tpl, $mod;
 
 	$selected_pm = getIsSet($_REQUEST['selected_pm']);

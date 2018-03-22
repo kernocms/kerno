@@ -72,9 +72,11 @@ CREATE TABLE `XPREFIX_files` (
 -- 
 
 CREATE TABLE `XPREFIX_flood` (
-  `ip` varchar(15) NOT NULL default '',
-  `id` int(10) default NULL,
-  PRIMARY KEY  (`ip`)
+  `ip` VARCHAR(45) NOT NULL default '',
+ -- `id` INT(10) DEFAULT NULL,
+  `set_date` TIMESTAMP NULL DEFAULT NULL,
+  PRIMARY KEY  (`ip`),
+  KEY `flood_set_date` (`set_date`)
 ) ENGINE=InnoDB;
 
 -- --------------------------------------------------------
@@ -136,28 +138,29 @@ CREATE TABLE `XPREFIX_ipban` (
 -- 
 
 CREATE TABLE `XPREFIX_news` (
-  `id` int(11) UNSIGNED NOT NULL auto_increment,
+  `id` INT(11) UNSIGNED NOT NULL auto_increment,
   `postdate` DATETIME NULL default NULL,
-  `author` varchar(100) NOT NULL default '',
-  `author_id` int(11) NOT NULL default '0',
-  `title` varchar(255) NOT NULL default '',
-  `content` text NOT NULL,
-  `alt_name` varchar(255) default NULL,
-  `mainpage` tinyint(1) default '1',
-  `approve` tinyint(1) default '0',
-  `views` int(10) default '0',
-  `favorite` tinyint(1) default '0',
-  `pinned` tinyint(1) default '0',
-  `catpinned` tinyint(1) default '0',
-  `flags` tinyint(1) default '0',
-  `num_files` int(10) default '0',
-  `num_images` int(10) default '0',
+  `author` VARCHAR(100) NOT NULL DEFAULT '',
+  `author_id` INT(11) NOT NULL DEFAULT '0',
+  `title` VARCHAR(255) NOT NULL DEFAULT '',
+  `content` TEXT NOT NULL,
+  `save_rawcontent` TINYINT(1) DEFAULT '0',
+  `alt_name` VARCHAR(255) DEFAULT NULL,
+  `mainpage` TINYINT(1) DEFAULT '1',
+  `approve` TINYINT(1) DEFAULT '0',
+  `views` INT(10) DEFAULT '0',
+  `favorite` TINYINT(1) DEFAULT '0',
+  `pinned` TINYINT(1) DEFAULT '0',
+  `catpinned` TINYINT(1) DEFAULT '0',
+  `flags` TINYINT(1) DEFAULT '0',
+  `num_files` INT(10) DEFAULT '0',
+  `num_images` INT(10) DEFAULT '0',
   `editdate` DATETIME NULL DEFAULT NULL,
-  `catid` varchar(255) NOT NULL default '0',
-  `description` text NOT NULL,
-  `keywords` text NOT NULL,
-  `rating` int(10) NOT NULL default '0',
-  `votes` int(10) NOT NULL default '0',
+  `catid` VARCHAR(255) NOT NULL default '0',
+  `description` TEXT NOT NULL,
+  `keywords` TEXT NOT NULL,
+  `rating` INT(10) NOT NULL DEFAULT '0',
+  `votes` INT(10) NOT NULL DEFAULT '0',
   PRIMARY KEY  (`id`),
   KEY `news_title` (`title`(191)),
   KEY `news_altname` (`alt_name`(30)),
@@ -179,11 +182,23 @@ CREATE TABLE `XPREFIX_news` (
 -- 
 
 CREATE TABLE `XPREFIX_news_map` (
-  `news_id` int(11) UNSIGNED default NULL,
-  `category_id` int(11) default NULL,
-  `dt` DATETIME NULL default NULL,
+  `news_id` INT(11) UNSIGNED DEFAULT NULL,
+  `category_id` INT(11) DEFAULT NULL,
+  `dt` DATETIME NULL DEFAULT NULL,
   KEY `nm_newsID` (`news_id`),
   KEY `nm_categoryID` (`category_id`)
+) ENGINE=InnoDB;
+
+-- --------------------------------------------------------
+
+--
+-- Table `PREFIX_news_rawcontent`
+--
+
+CREATE TABLE `XPREFIX_news_rawcontent` (
+  `news_id` INT(11) UNSIGNED NOT NULL DEFAULT 0,
+  `content_raw` TEXT NOT NULL,
+  PRIMARY KEY (`news_id`)
 ) ENGINE=InnoDB;
 
 -- --------------------------------------------------------
@@ -193,16 +208,16 @@ CREATE TABLE `XPREFIX_news_map` (
 -- 
 
 CREATE TABLE `XPREFIX_static` (
-  `id` int(11) NOT NULL auto_increment,
-  `postdate` int(10) NOT NULL default '0',
-  `title` varchar(255) default NULL,
-  `content` text,
-  `alt_name` varchar(255) default '',
-  `template` varchar(100) default '',
-  `description` text,
-  `keywords` text,
-  `approve` tinyint(1) default 0,
-  `flags` tinyint(1) default '0',
+  `id` INT(11) NOT NULL auto_increment,
+  `postdate` DATETIME NULL DEFAULT NULL,
+  `title` VARCHAR(255) default NULL,
+  `content` TEXT,
+  `alt_name` VARCHAR(255) default '',
+  `template` VARCHAR(100) default '',
+  `description` TEXT NULL,
+  `keywords` TEXT NULL,
+  `approve` TINYINT(1) default 0,
+  `flags` TINYINT(1) default '0',
   PRIMARY KEY  (`id`),
   KEY `static_title` (`title`),
   KEY `static_altname` (`alt_name`)
@@ -215,24 +230,19 @@ CREATE TABLE `XPREFIX_static` (
 -- 
 
 CREATE TABLE `XPREFIX_users` (
-  `id` int(10) NOT NULL auto_increment,
-  `name` varchar(100) NOT NULL default '',
-  `pass` varchar(100) default NULL,
-  `mail` varchar(80) default NULL,
-  `news` int(10) default '0',
---  `com` int(10) default '0',
-  `status` tinyint(1) default '4',
-  `lastenter_date` TIMESTAMP NULL default NULL,
-  `registration_date` DATETIME NULL default NULL,
-  `site` varchar(100) default NULL,
-  `icq` varchar(10) NOT NULL default '',
-  `where_from` varchar(255) default NULL,
-  `info` text,
-  `avatar` varchar(100) NOT NULL default '',
-  `photo` varchar(100) NOT NULL default '',
-  `activation` varchar(25) NOT NULL default '',
-  `ip` varchar(15) NOT NULL default '0',
-  `authcookie` varchar(50) default NULL,
+  `id` INT(11) NOT NULL auto_increment,
+  `name` VARCHAR(100) NOT NULL default '',
+  `pass` VARCHAR(100) NULL DEFAULT NULL,
+  `mail` VARCHAR(80) NULL DEFAULT NULL,
+  `news` INT(10) DEFAULT '0',
+  `status` INT(10) DEFAULT '4',
+  `lastenter_date` TIMESTAMP NULL DEFAULT NULL,
+  `registration_date` DATETIME NULL DEFAULT NULL,
+  `avatar` VARCHAR(100) NOT NULL DEFAULT '',
+  `timezone` VARCHAR(50) NULL DEFAULT NULL,
+  `activation` VARCHAR(25) NOT NULL DEFAULT '',
+  `ip` VARCHAR(45) NOT NULL DEFAULT '0',
+  `authcookie` VARCHAR(50) NULL DEFAULT NULL,
   PRIMARY KEY  (`id`),
   KEY `users_name` (`name`),
   KEY `users_auth` (`authcookie`)
@@ -245,11 +255,11 @@ CREATE TABLE `XPREFIX_users` (
 --
 
 CREATE TABLE `XPREFIX_users_restorepass` (
-  `id` int(11) NOT NULL auto_increment,
-  `user_id` int(11) NOT NULL default '0',
-  `code` char(20) default '',
+  `id` INT(11) NOT NULL auto_increment,
+  `user_id` INT(11) NOT NULL DEFAULT '0',
+  `code` CHAR(20) DEFAULT '',
   `request_date` TIMESTAMP NULL default NULL,
-  `is_restored` tinyint(1) default 0,
+  `is_restored` TINYINT(1) DEFAULT 0,
   PRIMARY KEY  (`id`),
   KEY `restorepass_code` (`code`)
 ) ENGINE=InnoDB;
@@ -261,13 +271,13 @@ CREATE TABLE `XPREFIX_users_restorepass` (
 -- 
 
 CREATE TABLE `XPREFIX_users_pm` (
-  `pmid` int(10) NOT NULL auto_increment,
-  `from_id` int(10) default '0',
-  `to_id` int(10) default '0',
-  `pmdate` int(10) NOT NULL,
-  `title` varchar(255) default NULL,
-  `content` text NOT NULL,
-  `viewed` tinyint(1) default '0',
+  `pmid` INT(10) NOT NULL auto_increment,
+  `from_id` INT(10) DEFAULT '0',
+  `to_id` INT(10) DEFAULT '0',
+  `pmdate` DATETIME NULL DEFAULT NULL,
+  `title` VARCHAR(255) DEFAULT NULL,
+  `content` TEXT NOT NULL,
+  `viewed` TINYINT(1) default '0',
   PRIMARY KEY  (`pmid`),
   KEY `from_id` (`from_id`,`to_id`,`viewed`)
 ) ENGINE=InnoDB;
@@ -301,7 +311,7 @@ CREATE TABLE `XPREFIX_load` (
 CREATE TABLE `XPREFIX_syslog` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `dt` DATETIME,
-  `ip` CHAR(15),
+  `ip` VARCHAR(45),
   `plugin` CHAR(30),
   `item` CHAR(30),
   `ds` INT(11),

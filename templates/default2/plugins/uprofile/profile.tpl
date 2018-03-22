@@ -9,26 +9,17 @@
 			document.getElementById('additional').style.display = "";
 		}
 	}
+
 	function validate_form() {
 		var f = document.getElementById('profileForm');
-		// ICQ
-		var icq = f.editicq.value;
-		if ((icq.length > 0) && (!icq.match(/^\d{4,10}$/))) {
-			alert("{{ lang.uprofile['wrong_icq'] }}");
-			return false;
-		}
+
 		// Email
 		var email = f.editmail.value;
 		if ((email.length > 0) && (!emailCheck(email))) {
 			alert("{{ lang.uprofile['wrong_email'] }}");
 			return false;
 		}
-		// About
-		var about = f.editabout.value;
-		if (({about_sizelimit} > 0) && (about.length > {about_sizelimit})) {
-			alert("{{ info_sizelimit_text }}");
-			return false;
-		}
+
 		return true;
 	}
 </script>
@@ -55,24 +46,12 @@
 					<td width="30%">{{ lang.uprofile['email'] }}:</td>
 					<td width="70%"><input class="input" type="text" name="editmail" value="{{ user.email }}"/></td>
 				</tr>
-				<tr>
-					<td width="30%">{{ lang.uprofile['site'] }}:</td>
-					<td width="70%"><input class="input" type="text" name="editsite" value="{{ user.site }}"/></td>
-				</tr>
-				<tr>
-					<td width="30%">{{ lang.uprofile['icq'] }}:</td>
-					<td width="70%"><input class="input" type="text" name="editicq" value="{{ user.icq }}"/></td>
-				</tr>
-				<tr>
-					<td width="30%">{{ lang.uprofile['from'] }}:</td>
-					<td width="70%"><input class="input" type="text" name="editfrom" value="{{ user.from }}"/></td>
-				</tr>
-				<tr>
-					<td width="30%">{{ lang.uprofile['about'] }}:</td>
-					<td width="70%">
-						<textarea class="textarea" name="editabout" style="width:98%; height: 80px;">{{ user.info }}</textarea><br/>{{ info_sizelimit_text }}
-					</td>
-				</tr>
+                {% if (flags.timezoneEnabled) %}
+                <tr>
+                    <td width="30%">{{ lang.uprofile['timezone'] }}:</td>
+                    <td width="70%">{{ user.timezone }}</td>
+                </tr>
+                {% endif %}
 				<tr>
 					<td width="30%">{{ lang.uprofile['new_pass'] }}:</td>
 					<td width="70%"><input class="input" type="password" name="editpassword" autocomplete="off"/><br/>
@@ -89,23 +68,6 @@
 				{% if pluginIsActive('xfields') %}{{ plugin_xfields_1 }}{% endif %}
 			</table>
 			<table id="additional" style="display: none;" border="0" width="100%" cellspacing="0" cellpadding="0">
-				{% if (flags.photoAllowed) %}
-					<tr>
-						<td width="30%">{{ lang.uprofile['photo'] }}:</td>
-						<td width="70%">
-							<input type="file" name="newphoto" class="input"/><br/>{% if (user.flags.hasPhoto) %}
-							<a href="{{ user.photo }}" target="_blank">
-								<img src="{{ user.photo_thumb }}" style="margin: 5px; border: 0px; max-width: 80px; max-height: 80px;" alt=""/>
-							</a><br/>
-						<input type="checkbox" name="delphoto" id="delphoto"/>&nbsp;{{ lang.uprofile['delete'] }}{% endif %}
-						</td>
-					</tr>
-				{% else %}
-					<tr>
-						<td width="30%">{{ lang.uprofile['photo'] }}:</td>
-						<td width="70%">{{ lang.uprofile['photos_denied'] }}</td>
-					</tr>
-				{% endif %}
 				{% if (flags.avatarAllowed) %}
 					<tr>
 						<td width="30%">{{ lang.uprofile['avatar'] }}:</td>

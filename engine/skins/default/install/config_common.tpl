@@ -17,6 +17,12 @@
 					<td>{l_common.parameters.title}:</td>
 					<td><input type="text" name="home_title" value="{home_title}" size="60"/></td>
 				</tr>
+                <tr>
+                    <td>{l_common.parameters.timezone}:</td>
+                    <td>
+                        {timezone_list} <small>UTC time: {utc_time}</small>
+                    </td>
+                </tr>
 			</table>
 		</fieldset>
 		<br/>

@@ -418,17 +418,17 @@ function makeCategoryList($params = array()) {
 //	len		- size in chars for part of long news to use
 //	finisher	- chars that will be added into the end to indicate that this is truncated line ( default = '...' )
 //function Prepare($row, $page) {
-function newsFillVariables($row, $fullMode, $page = 0, $disablePagination = 0, $regenShortNews = array()) {
+function newsFillVariables($row, $fullMode, $page = 0, $disablePagination = 0, $regenShortNews = []) {
     global $config, $parse, $lang, $catz, $catmap, $CurrentHandler, $currentCategory, $TemplateCache, $mysql, $PHP_SELF;
 
-    $tvars = array(
-        'vars'  => array(
-            'news'       => array('id' => $row['id']),
+    $tvars = [
+        'vars'  => [
+            'news'       => ['id' => $row['id']],
             'pagination' => '',
 
-        ),
-        'flags' => array()
-    );
+        ],
+        'flags' => []
+    ];
 
     $alink = checkLinkAvailable('uprofile', 'show') ?
         generateLink('uprofile', 'show', array('name' => $row['author'], 'id' => $row['author_id'])) :
@@ -511,6 +511,7 @@ function newsFillVariables($row, $fullMode, $page = 0, $disablePagination = 0, $
             if ($page > 1) {
                 $tvars['vars']['short-story'] = '';
             }
+
             $full = $pages[$page - 1];
             $tvars['vars']['[pagination]'] = '';
             $tvars['vars']['[/pagination]'] = '';
@@ -549,18 +550,24 @@ function newsFillVariables($row, $fullMode, $page = 0, $disablePagination = 0, $
         $short = $parse->userblocks($short);
         $full = $parse->userblocks($full);
     }
-    if ($config['use_bbcodes']) {
-        $short = $parse->bbcodes($short);
-        $full = $parse->bbcodes($full);
+
+    if( $config['save_news_content_mode'] == 'raw' || ($config['save_news_content_mode'] == 'parsed' && $row['save_rawcontent'] == 0) ){
+        if ($config['use_bbcodes']) {
+            $short = $parse->bbcodes($short);
+            $full = $parse->bbcodes($full);
+        }
+
+        if ($config['use_htmlformatter'] && (!($row['flags'] & 1))) {
+            $short = $parse->htmlformatter($short);
+            $full = $parse->htmlformatter($full);
+        }
+
+        if ($config['use_smilies']) {
+            $short = $parse->smilies($short);
+            $full = $parse->smilies($full);
+        }
     }
-    if ($config['use_htmlformatter'] && (!($row['flags'] & 1))) {
-        $short = $parse->htmlformatter($short);
-        $full = $parse->htmlformatter($full);
-    }
-    if ($config['use_smilies']) {
-        $short = $parse->smilies($short);
-        $full = $parse->smilies($full);
-    }
+
     if (1 && templateLoadVariables()) {
 
         $short = $parse->parseBBAttach($short, $mysql, $TemplateCache['site']['#variables']);

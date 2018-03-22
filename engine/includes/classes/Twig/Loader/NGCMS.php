@@ -210,6 +210,7 @@ class Twig_Loader_NGCMS implements Twig_LoaderInterface
     				throw new Twig_Error_Loader(sprintf('Unable to find template [ABSOLUTE PATH] "%s" (looked into: %s).', $name, $path));
     			}
     		}
+
     		throw new Twig_Error_Loader(sprintf('Unable to find template [ABSOLUTE PATH] "%s" (looked into: %s).', $name, implode(', ', $this->paths)));
     	}
 

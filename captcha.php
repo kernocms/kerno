@@ -9,6 +9,12 @@
 */
 
 @require_once('engine/core.php');
+
+if(!$config['use_captcha']) {
+    error404();
+    exit;
+}
+
 @include_once root . 'includes/classes/captcha.class.php';
 
 // Print HTTP headers
